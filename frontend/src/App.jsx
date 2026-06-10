@@ -121,7 +121,7 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0F172A; font-family: 'Inter', sans-serif; }
+        body { background: #1E1E1E; font-family: 'Inter', sans-serif; }
         input, select, button { font-family: 'Inter', sans-serif; }
         input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
         @keyframes fadeUp { from { opacity:0; transform: translateX(-50%) translateY(8px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
@@ -145,7 +145,7 @@ export default function App() {
               style={{
                 fontSize: 14,
                 fontWeight: 700,
-                color: over ? "#F87171" : "#60A5FA",
+                color: over ? "#F87171" : "#A3E635",
               }}
             >
               {fmt(budget)}
@@ -191,7 +191,7 @@ export default function App() {
                   ? "linear-gradient(90deg,#EF4444,#B91C1C)"
                   : budgetPct > 80
                     ? "linear-gradient(90deg,#F59E0B,#D97706)"
-                    : "linear-gradient(90deg,#3B82F6,#1D4ED8)",
+                    : "linear-gradient(90deg,#A3E635,#84CC16)",
                 transition: "width 0.5s ease",
               }}
             />
@@ -333,7 +333,7 @@ export default function App() {
           height="22"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="white"
+          stroke="#1E1E1E"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
