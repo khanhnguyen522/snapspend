@@ -1,0 +1,15 @@
+services:
+  postgres:
+    container_name: snapspend-postgres
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: snapspend
+    ports:
+      - "5434:5432"
+    volumes:
+      - snapspend_data:/var/lib/postgresql/data
+
+volumes:
+  snapspend_data:
