@@ -3,81 +3,199 @@ import { getCat, fmt } from "../utils";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+const getRingGradient = (count) => {
+  if (count >= 3) return "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)";
+  if (count === 2) return "linear-gradient(135deg,#8B5CF6,#6D28D9)";
+  return "linear-gradient(135deg,#F97316,#EC4899)";
+};
+
 export default function DayCell({ day, expenses, onClick }) {
   if (!day) return <div />;
 
+  const hasExpenses = expenses.length > 0;
   const total = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
-  const photos = expenses.filter((e) => e.photo_url).slice(0, 2);
+  const count = expenses.length;
   const hasDebt = expenses.some((e) => e.paid_by && !e.is_settled);
+  const photos = expenses.filter((e) => e.photo_url);
+  const stackCount = Math.min(count, 3);
+
+  const stackOffsets = [
+    { rotate: "5deg", top: 5, left: 5, zIndex: 1, opacity: 0.6 },
+    { rotate: "2deg", top: 3, left: 3, zIndex: 2, opacity: 0.8 },
+    { rotate: "0deg", top: 0, left: 0, zIndex: 3, opacity: 1 },
+  ].slice(3 - stackCount);
+
+  if (!hasExpenses) {
+    return (
+      <div style={{ ...cal.cell, cursor: "default" }}>
+        <span
+          style={{
+            position: "absolute",
+            top: 4,
+            left: 5,
+            fontSize: 10,
+            color: "#222",
+            fontWeight: 600,
+          }}
+        >
+          {day}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
-      onClick={() => expenses.length > 0 && onClick(day, expenses)}
+      onClick={() => onClick(day, expenses)}
       style={{
-        ...cal.cell,
-        cursor: expenses.length > 0 ? "pointer" : "default",
+        borderRadius: 9,
+        minHeight: 56,
+        position: "relative",
+        background: getRingGradient(count),
+        padding: 1.5,
+        cursor: "pointer",
       }}
     >
-      <span
+      <div
         style={{
-          fontSize: 11,
-          color: expenses.length ? "#94A3B8" : "#334155",
-          fontWeight: 500,
+          background: "#000",
+          borderRadius: 8,
+          height: "100%",
+          minHeight: 53,
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        {day}
-      </span>
+        {/* Stacked photos/cards */}
+        {stackOffsets.map((offset, i) => {
+          const expIdx = expenses.length - stackCount + i;
+          const exp = expenses[Math.max(0, expIdx)];
+          const cat = getCat(exp?.category);
+          const isTop = i === stackOffsets.length - 1;
 
-      {photos.length > 0 ? (
-        <div
-          style={{ display: "flex", gap: 2, marginTop: 3, flexWrap: "wrap" }}
-        >
-          {photos.map((e, i) => (
-            <img
-              key={i}
-              src={`${API}${e.photo_url}`}
-              alt=""
-              style={cal.thumb}
-            />
-          ))}
-          {expenses.length > 2 && (
-            <div style={cal.moreChip}>+{expenses.length - 2}</div>
-          )}
-        </div>
-      ) : expenses.length > 0 ? (
-        <div
-          style={{ display: "flex", gap: 2, marginTop: 3, flexWrap: "wrap" }}
-        >
-          {expenses.slice(0, 3).map((e, i) => (
+          return (
             <div
               key={i}
               style={{
-                ...cal.iconChip,
-                background: getCat(e.category).color + "22",
-                color: getCat(e.category).color,
+                position: "absolute",
+                top: offset.top,
+                left: offset.left,
+                right: -offset.left,
+                bottom: -offset.top,
+                borderRadius: 7,
+                overflow: "hidden",
+                transform: `rotate(${offset.rotate})`,
+                zIndex: offset.zIndex,
+                opacity: offset.opacity,
               }}
             >
-              {getCat(e.category).icon}
-            </div>
-          ))}
-        </div>
-      ) : null}
+              {exp?.photo_url ? (
+                <img
+                  src={`${API}${exp.photo_url}`}
+                  alt=""
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    background: cat.color + "22",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 16,
+                  }}
+                >
+                  {cat.icon}
+                </div>
+              )}
 
-      {total > 0 && (
+              {isTop && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background:
+                      "linear-gradient(transparent 35%, rgba(0,0,0,0.8))",
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
+
+        {/* Day number */}
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 3,
-            marginTop: 2,
+            position: "absolute",
+            top: 3,
+            left: 4,
+            zIndex: 10,
+            fontSize: 10,
+            fontWeight: 700,
+            color: "rgba(255,255,255,0.9)",
           }}
         >
-          <span style={{ fontSize: 10, color: "#60A5FA", fontWeight: 600 }}>
-            {fmt(total)}
-          </span>
-          {hasDebt && <span style={{ fontSize: 9, color: "#F59E0B" }}>●</span>}
+          {day}
         </div>
-      )}
+
+        {/* Count badge */}
+        {count > 1 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 3,
+              right: 3,
+              zIndex: 10,
+              background: "rgba(236,72,153,0.85)",
+              borderRadius: 4,
+              padding: "1px 3px",
+              fontSize: 7,
+              color: "#fff",
+              fontWeight: 700,
+            }}
+          >
+            {count}
+          </div>
+        )}
+
+        {/* Amount */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 3,
+            left: 4,
+            zIndex: 10,
+            fontSize: 9,
+            fontWeight: 700,
+            color: "#fff",
+          }}
+        >
+          {fmt(total)}
+        </div>
+
+        {/* Debt dot */}
+        {hasDebt && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: 3,
+              right: 4,
+              zIndex: 10,
+              width: 5,
+              height: 5,
+              borderRadius: "50%",
+              background: "#FBBF24",
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -33,7 +33,7 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
             style={{
               background: "none",
               border: "none",
-              color: "#60A5FA",
+              color: "#A3E635",
               fontSize: 14,
               fontWeight: 600,
               cursor: "pointer",

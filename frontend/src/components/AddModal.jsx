@@ -14,7 +14,7 @@ function Field({ label, children }) {
           display: "block",
           fontSize: 11,
           fontWeight: 600,
-          color: "#475569",
+          color: "#444",
           textTransform: "uppercase",
           letterSpacing: "0.06em",
           marginBottom: 5,
@@ -27,11 +27,12 @@ function Field({ label, children }) {
   );
 }
 
-export default function AddModal({ onClose, onSaved, setToast }) {
-  const [mode, setMode] = useState("choose"); // choose | manual | scan
-  const [step, setStep] = useState("photo"); // photo | form
-  const [photo, setPhoto] = useState(null);
-  const [preview, setPreview] = useState(null);
+export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
+  const [step, setStep] = useState(initialFile ? "deciding" : "preview");
+  const [photo, setPhoto] = useState(initialFile || null);
+  const [preview, setPreview] = useState(
+    initialFile ? URL.createObjectURL(initialFile) : null,
+  );
   const [scanning, setScanning] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -44,22 +45,24 @@ export default function AddModal({ onClose, onSaved, setToast }) {
     paidByFriend: false,
     paid_by: "",
   });
-  const photoRef = useRef();
-  const scanRef = useRef();
+  const cameraRef = useRef();
 
-  const pickPhoto = (file) => {
-    if (!file) return;
+  // Called from parent with a file (camera or gallery)
+  const handleFile = (file) => {
+    if (!file) {
+      onClose();
+      return;
+    }
     setPhoto(file);
     setPreview(URL.createObjectURL(file));
-    setStep("form");
+    setStep("deciding");
   };
 
-  const handleScan = async (file) => {
-    if (!file) return;
+  const handleReceipt = async () => {
     setScanning(true);
-    setMode("scan");
+    setStep("scanning");
     const fd = new FormData();
-    fd.append("photo", file);
+    fd.append("photo", photo);
     try {
       const res = await axios.post(`${API}/expenses/scan`, fd);
       const e = res.data.extracted;
@@ -70,16 +73,14 @@ export default function AddModal({ onClose, onSaved, setToast }) {
         category: e.category,
         date: e.date,
       }));
-      setPreview(URL.createObjectURL(file));
-      setPhoto(file);
-      setMode("manual");
-      setStep("form");
     } catch {
-      setError("Could not read receipt.");
-      setMode("choose");
+      setError("Could not read receipt. Fill in manually.");
     }
     setScanning(false);
+    setStep("form");
   };
+
+  const handleManual = () => setStep("form");
 
   const save = async () => {
     if (!form.amount || isNaN(parseFloat(form.amount))) {
@@ -112,85 +113,222 @@ export default function AddModal({ onClose, onSaved, setToast }) {
     setSaving(false);
   };
 
-  // ── Choose screen ──────────────────────────────────────────────────────────
-  if (mode === "choose")
+  // ── Initial — open camera immediately ─────────────────────────────────────
+  if (step === "preview")
     return (
       <div
         style={m.overlay}
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
-        <div style={m.sheet}>
-          <div style={m.handle} />
-          <p style={m.sheetTitle}>Add expense</p>
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          style={{ display: "none" }}
+          onChange={(e) => handleFile(e.target.files[0])}
+        />
+        {/* Auto-trigger camera on mount */}
+        <style>{`.auto-trigger { animation: none; }`}</style>
+        <AutoTrigger
+          onMount={() => cameraRef.current?.click()}
+          onClose={onClose}
+        />
+      </div>
+    );
+
+  // ── Deciding — fullscreen photo with two choices ───────────────────────────
+  if (step === "deciding")
+    return (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 1000,
+          background: "#000",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* Full photo */}
+        <div style={{ flex: 1, position: "relative" }}>
+          <img
+            src={preview}
+            alt=""
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+          {/* Top gradient */}
           <div
             style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              background: "linear-gradient(rgba(0,0,0,0.5),transparent)",
+              padding: "52px 20px 30px",
               display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              padding: "0 20px 32px",
+              justifyContent: "space-between",
             }}
           >
             <button
-              style={m.bigBtn}
-              onClick={() => {
-                setMode("manual");
-                setStep("photo");
+              onClick={onClose}
+              style={{
+                background: "rgba(0,0,0,0.5)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 20,
+                padding: "8px 14px",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                backdropFilter: "blur(12px)",
               }}
             >
-              <span style={m.bigBtnIcon}>📸</span>
-              <div>
-                <div style={m.bigBtnLabel}>Photo memory</div>
-                <div style={m.bigBtnSub}>
-                  Take a pic of your milk tea, food, anything
-                </div>
-              </div>
-            </button>
-            <button style={m.bigBtn} onClick={() => scanRef.current?.click()}>
-              <span style={m.bigBtnIcon}>🧾</span>
-              <div>
-                <div style={m.bigBtnLabel}>Scan receipt</div>
-                <div style={m.bigBtnSub}>Auto-read store, amount & date</div>
-              </div>
-            </button>
-            <button
-              style={{ ...m.bigBtn, opacity: 0.7 }}
-              onClick={() => {
-                setMode("manual");
-                setStep("form");
-              }}
-            >
-              <span style={m.bigBtnIcon}>✏️</span>
-              <div>
-                <div style={m.bigBtnLabel}>Type manually</div>
-                <div style={m.bigBtnSub}>No photo, just enter the details</div>
-              </div>
+              ✕
             </button>
           </div>
-          <input
-            ref={scanRef}
-            type="file"
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={(e) => handleScan(e.target.files[0])}
-          />
+          {/* Bottom gradient + choices */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: "linear-gradient(transparent, rgba(0,0,0,0.95))",
+              padding: "60px 20px 40px",
+            }}
+          >
+            <p
+              style={{
+                fontSize: 16,
+                color: "rgba(255,255,255,0.6)",
+                marginBottom: 20,
+                textAlign: "center",
+              }}
+            >
+              What is this?
+            </p>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={handleReceipt}
+                style={{
+                  flex: 1,
+                  background: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: 14,
+                  padding: "16px 12px",
+                  cursor: "pointer",
+                  backdropFilter: "blur(12px)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span style={{ fontSize: 28 }}>🧾</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                  Receipt
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(255,255,255,0.5)",
+                    textAlign: "center",
+                  }}
+                >
+                  Claude reads it for you
+                </span>
+              </button>
+              <button
+                onClick={handleManual}
+                style={{
+                  flex: 1,
+                  background:
+                    "linear-gradient(135deg,rgba(249,115,22,0.3),rgba(236,72,153,0.3))",
+                  border: "1px solid rgba(249,115,22,0.4)",
+                  borderRadius: 14,
+                  padding: "16px 12px",
+                  cursor: "pointer",
+                  backdropFilter: "blur(12px)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span style={{ fontSize: 28 }}>✏️</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                  Add amount
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(255,255,255,0.5)",
+                    textAlign: "center",
+                  }}
+                >
+                  Type it in yourself
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
 
-  // ── Scanning screen ────────────────────────────────────────────────────────
-  if (scanning)
+  // ── Scanning ───────────────────────────────────────────────────────────────
+  if (step === "scanning")
     return (
-      <div style={m.overlay}>
-        <div style={{ ...m.sheet, alignItems: "center", padding: "48px 20px" }}>
-          <div style={m.scanSpinner} />
-          <p style={{ color: "#94A3B8", fontSize: 14, marginTop: 16 }}>
-            Reading your receipt...
-          </p>
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 1000,
+          background: "#000",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ position: "relative", width: "100%", height: "100%" }}>
+          <img
+            src={preview}
+            alt=""
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+              opacity: 0.3,
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 16,
+            }}
+          >
+            <div style={m.scanSpinner} />
+            <p style={{ color: "#888", fontSize: 14 }}>
+              Claude is reading your receipt...
+            </p>
+          </div>
         </div>
       </div>
     );
 
-  // ── Photo + form ───────────────────────────────────────────────────────────
+  // ── Form ───────────────────────────────────────────────────────────────────
   return (
     <div
       style={m.overlay}
@@ -199,205 +337,185 @@ export default function AddModal({ onClose, onSaved, setToast }) {
       <div style={m.sheet}>
         <div style={m.handle} />
         <div style={m.sheetHeader}>
-          <button
-            onClick={() =>
-              step === "form" && preview ? setStep("photo") : onClose()
-            }
-            style={m.backBtn}
-          >
-            {step === "form" ? "‹ Back" : "Cancel"}
+          <button onClick={() => setStep("deciding")} style={m.backBtn}>
+            ‹ Back
           </button>
-          <span style={m.sheetTitle2}>
-            {step === "photo" ? "Choose photo" : "Details"}
-          </span>
+          <span style={m.sheetTitle2}>Details</span>
           <div style={{ width: 60 }} />
         </div>
 
-        {step === "photo" ? (
-          <div style={{ padding: "16px 20px 32px" }}>
-            <input
-              ref={photoRef}
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={(e) => pickPhoto(e.target.files[0])}
-            />
-            <div style={m.photoZone} onClick={() => photoRef.current?.click()}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>📷</div>
-              <p style={{ color: "#CBD5E1", fontSize: 14, fontWeight: 500 }}>
-                Take or choose a photo
-              </p>
-              <p style={{ color: "#475569", fontSize: 12, marginTop: 4 }}>
-                Milk tea, food, receipt — anything
-              </p>
+        <div
+          style={{
+            padding: "0 20px 32px",
+            overflowY: "auto",
+            maxHeight: "75vh",
+          }}
+        >
+          {preview && (
+            <div style={{ position: "relative", marginBottom: 16 }}>
+              <img
+                src={preview}
+                alt=""
+                style={{
+                  width: "100%",
+                  height: 140,
+                  objectFit: "cover",
+                  borderRadius: 12,
+                  display: "block",
+                }}
+              />
             </div>
-            <button style={m.skipBtn} onClick={() => setStep("form")}>
-              Skip photo →
-            </button>
+          )}
+
+          <div style={m.amountRow}>
+            <span style={m.dollarSign}>$</span>
+            <input
+              type="number"
+              placeholder="0.00"
+              autoFocus
+              value={form.amount}
+              onChange={(e) => setForm({ ...form, amount: e.target.value })}
+              style={m.amountInput}
+            />
           </div>
-        ) : (
+
+          <Field label="Where">
+            <input
+              type="text"
+              placeholder="Gong Cha, 7-Eleven..."
+              value={form.store_name}
+              onChange={(e) => setForm({ ...form, store_name: e.target.value })}
+              style={m.input}
+            />
+          </Field>
+
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
+          >
+            <Field label="Category">
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                style={m.input}
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {getCat(c).icon} {c}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Date">
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                style={m.input}
+              />
+            </Field>
+          </div>
+
+          <Field label="Note (optional)">
+            <input
+              type="text"
+              placeholder="What was this for?"
+              value={form.note}
+              onChange={(e) => setForm({ ...form, note: e.target.value })}
+              style={m.input}
+            />
+          </Field>
+
           <div
             style={{
-              padding: "0 20px 32px",
-              overflowY: "auto",
-              maxHeight: "75vh",
+              ...m.friendBox,
+              ...(form.paidByFriend ? m.friendBoxOn : {}),
             }}
+            onClick={() =>
+              setForm({ ...form, paidByFriend: !form.paidByFriend })
+            }
           >
-            {preview && (
-              <div style={{ position: "relative", marginBottom: 16 }}>
-                <img
-                  src={preview}
-                  alt=""
-                  style={{
-                    width: "100%",
-                    height: 160,
-                    objectFit: "cover",
-                    borderRadius: 12,
-                    display: "block",
-                  }}
-                />
-                <button
-                  onClick={() => {
-                    setPhoto(null);
-                    setPreview(null);
-                  }}
-                  style={m.removePhoto}
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
-            <div style={m.amountRow}>
-              <span style={m.dollarSign}>$</span>
-              <input
-                type="number"
-                placeholder="0.00"
-                autoFocus
-                value={form.amount}
-                onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                style={m.amountInput}
-              />
-            </div>
-
-            <Field label="Where">
-              <input
-                type="text"
-                placeholder="Gong Cha, 7-Eleven..."
-                value={form.store_name}
-                onChange={(e) =>
-                  setForm({ ...form, store_name: e.target.value })
-                }
-                style={m.input}
-              />
-            </Field>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 10,
-              }}
-            >
-              <Field label="Category">
-                <select
-                  value={form.category}
-                  onChange={(e) =>
-                    setForm({ ...form, category: e.target.value })
-                  }
-                  style={m.input}
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {getCat(c).icon} {c}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Date">
-                <input
-                  type="date"
-                  value={form.date}
-                  onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  style={m.input}
-                />
-              </Field>
-            </div>
-
-            <Field label="Note (optional)">
-              <input
-                type="text"
-                placeholder="What was this for?"
-                value={form.note}
-                onChange={(e) => setForm({ ...form, note: e.target.value })}
-                style={m.input}
-              />
-            </Field>
-
-            <div
-              style={{
-                ...m.friendBox,
-                ...(form.paidByFriend ? m.friendBoxOn : {}),
-              }}
-              onClick={() =>
-                setForm({ ...form, paidByFriend: !form.paidByFriend })
-              }
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 20 }}>🤝</span>
-                <div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: form.paidByFriend ? "#60A5FA" : "#CBD5E1",
-                    }}
-                  >
-                    A friend paid for me
-                  </div>
-                  <div style={{ fontSize: 11, color: "#475569", marginTop: 1 }}>
-                    I'll pay them back later
-                  </div>
-                </div>
-              </div>
-              <div
-                style={{
-                  ...m.toggle,
-                  ...(form.paidByFriend ? m.toggleOn : {}),
-                }}
-              >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 20 }}>🤝</span>
+              <div>
                 <div
                   style={{
-                    ...m.thumb,
-                    ...(form.paidByFriend ? m.thumbOn : {}),
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: form.paidByFriend ? "#F97316" : "#888",
                   }}
-                />
+                >
+                  A friend paid for me
+                </div>
+                <div style={{ fontSize: 11, color: "#333", marginTop: 1 }}>
+                  I'll pay them back later
+                </div>
               </div>
             </div>
-
-            {form.paidByFriend && (
-              <Field label="Friend's name">
-                <input
-                  type="text"
-                  placeholder="Who paid for you?"
-                  autoFocus
-                  value={form.paid_by}
-                  onChange={(e) =>
-                    setForm({ ...form, paid_by: e.target.value })
-                  }
-                  style={{ ...m.input, borderColor: "#1D4ED8" }}
-                />
-              </Field>
-            )}
-
-            {error && <div style={m.error}>{error}</div>}
-
-            <button onClick={save} disabled={saving} style={m.saveBtn}>
-              {saving ? "Saving..." : "Save expense"}
-            </button>
+            <div
+              style={{ ...m.toggle, ...(form.paidByFriend ? m.toggleOn : {}) }}
+            >
+              <div
+                style={{ ...m.thumb, ...(form.paidByFriend ? m.thumbOn : {}) }}
+              />
+            </div>
           </div>
-        )}
+
+          {form.paidByFriend && (
+            <Field label="Friend's name">
+              <input
+                type="text"
+                placeholder="Who paid for you?"
+                autoFocus
+                value={form.paid_by}
+                onChange={(e) => setForm({ ...form, paid_by: e.target.value })}
+                style={{ ...m.input, borderColor: "#F97316" }}
+              />
+            </Field>
+          )}
+
+          {error && <div style={m.error}>{error}</div>}
+
+          <button onClick={save} disabled={saving} style={m.saveBtn}>
+            {saving ? "Saving..." : "Save expense"}
+          </button>
+        </div>
       </div>
+    </div>
+  );
+}
+
+// Auto-triggers camera on mount, shows cancel if dismissed
+function AutoTrigger({ onMount, onClose }) {
+  const ref = useRef(false);
+  if (!ref.current) {
+    ref.current = true;
+    setTimeout(onMount, 100);
+  }
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        padding: "0 0 48px",
+      }}
+    >
+      <button
+        onClick={onClose}
+        style={{
+          background: "rgba(255,255,255,0.1)",
+          border: "1px solid rgba(255,255,255,0.15)",
+          borderRadius: 12,
+          padding: "12px 32px",
+          color: "#fff",
+          fontSize: 14,
+          cursor: "pointer",
+        }}
+      >
+        Cancel
+      </button>
     </div>
   );
 }
