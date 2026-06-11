@@ -12,11 +12,14 @@ import Toast from "./components/Toast";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+const NOW_MONTH = new Date().getMonth();
+const NOW_YEAR = new Date().getFullYear();
+
 export default function App() {
   const [expenses, setExpenses] = useState([]);
   const [budget, setBudget] = useState(500);
-  const [month, setMonth] = useState(new Date().getMonth());
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(NOW_MONTH);
+  const [year, setYear] = useState(NOW_YEAR);
   const [showAdd, setShowAdd] = useState(false);
   const [showBudget, setShowBudget] = useState(false);
   const [daySheet, setDaySheet] = useState(null);
@@ -174,6 +177,7 @@ export default function App() {
         <div ref={monthStripRef} className="month-strip" style={s.monthStrip}>
           {MONTHS.map((m, i) => {
             const isActive = i === month;
+            const isToday = i === NOW_MONTH && year === NOW_YEAR;
             const ringStyle = getMonthRingStyle(i);
             return (
               <div
@@ -193,6 +197,18 @@ export default function App() {
                     {m.slice(0, 3)}
                   </div>
                 </div>
+                {/* Orange dot under current real month */}
+                {isToday && (
+                  <div
+                    style={{
+                      width: 4,
+                      height: 4,
+                      borderRadius: "50%",
+                      background: isActive ? "#F97316" : "#555",
+                      marginTop: 2,
+                    }}
+                  />
+                )}
               </div>
             );
           })}
@@ -226,6 +242,11 @@ export default function App() {
               day={day}
               expenses={day ? byDay[day] || [] : []}
               onClick={(d, exps) => setDaySheet({ day: d, expenses: exps })}
+              isToday={
+                day === new Date().getDate() &&
+                month === NOW_MONTH &&
+                year === NOW_YEAR
+              }
             />
           ))}
         </div>

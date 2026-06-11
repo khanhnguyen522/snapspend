@@ -9,14 +9,13 @@ const getRingGradient = (count) => {
   return "linear-gradient(135deg,#F97316,#EC4899)";
 };
 
-export default function DayCell({ day, expenses, onClick }) {
+export default function DayCell({ day, expenses, onClick, isToday }) {
   if (!day) return <div />;
 
   const hasExpenses = expenses.length > 0;
   const total = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
   const count = expenses.length;
   const hasDebt = expenses.some((e) => e.paid_by && !e.is_settled);
-  const photos = expenses.filter((e) => e.photo_url);
   const stackCount = Math.min(count, 3);
 
   const stackOffsets = [
@@ -25,25 +24,52 @@ export default function DayCell({ day, expenses, onClick }) {
     { rotate: "0deg", top: 0, left: 0, zIndex: 3, opacity: 1 },
   ].slice(3 - stackCount);
 
+  // Empty day
   if (!hasExpenses) {
     return (
-      <div style={{ ...cal.cell, cursor: "default" }}>
-        <span
+      <div
+        style={{
+          ...cal.cell,
+          cursor: "default",
+          ...(isToday ? { border: "1px solid #F97316" } : {}),
+        }}
+      >
+        <div
           style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
             position: "absolute",
             top: 4,
             left: 5,
-            fontSize: 10,
-            color: "#222",
-            fontWeight: 600,
           }}
         >
-          {day}
-        </span>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: isToday ? "#F97316" : "#222",
+            }}
+          >
+            {day}
+          </span>
+          {isToday && (
+            <div
+              style={{
+                width: 4,
+                height: 4,
+                borderRadius: "50%",
+                background: "#F97316",
+                marginTop: 2,
+              }}
+            />
+          )}
+        </div>
       </div>
     );
   }
 
+  // Day with expenses
   return (
     <div
       onClick={() => onClick(day, expenses)}
@@ -52,8 +78,9 @@ export default function DayCell({ day, expenses, onClick }) {
         minHeight: 56,
         position: "relative",
         background: getRingGradient(count),
-        padding: 1.5,
+        padding: isToday ? 2 : 1.5,
         cursor: "pointer",
+        ...(isToday ? { boxShadow: "0 0 0 1.5px #F97316" } : {}),
       }}
     >
       <div
@@ -115,7 +142,6 @@ export default function DayCell({ day, expenses, onClick }) {
                   {cat.icon}
                 </div>
               )}
-
               {isTop && (
                 <div
                   style={{
@@ -137,12 +163,31 @@ export default function DayCell({ day, expenses, onClick }) {
             top: 3,
             left: 4,
             zIndex: 10,
-            fontSize: 10,
-            fontWeight: 700,
-            color: "rgba(255,255,255,0.9)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
           }}
         >
-          {day}
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: isToday ? "#F97316" : "rgba(255,255,255,0.9)",
+            }}
+          >
+            {day}
+          </span>
+          {isToday && (
+            <div
+              style={{
+                width: 4,
+                height: 4,
+                borderRadius: "50%",
+                background: "#F97316",
+                marginTop: 1,
+              }}
+            />
+          )}
         </div>
 
         {/* Count badge */}
