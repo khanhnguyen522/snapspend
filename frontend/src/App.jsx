@@ -270,6 +270,49 @@ export default function App() {
           </div>
         </div>
 
+        {/* Budget bar */}
+        <div style={{ padding: "10px 0 4px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 6,
+            }}
+          >
+            <span style={{ fontSize: 11, color: "#444" }}>
+              {over
+                ? `Over by ${fmt(totalSpent - budget)}`
+                : `${fmt(budget - totalSpent)} left`}
+            </span>
+            <span style={{ fontSize: 11, color: "#555" }}>
+              {fmt(totalSpent)}{" "}
+              <span style={{ color: "#222" }}>/ {fmt(budget)}</span>
+            </span>
+          </div>
+          <div
+            style={{
+              height: 4,
+              background: "#111",
+              borderRadius: 2,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                borderRadius: 2,
+                width: `${budgetPct}%`,
+                background: over
+                  ? "#EF4444"
+                  : budgetPct > 80
+                    ? "#FBBF24"
+                    : "linear-gradient(90deg,#F97316,#EC4899)",
+                transition: "width 0.5s ease",
+              }}
+            />
+          </div>
+        </div>
+
         {/* Insights */}
         {showInsights && (
           <div style={s.insightsCard}>
@@ -362,7 +405,13 @@ export default function App() {
         />
 
         {/* Center camera FAB */}
-        <button style={s.fabBtn} onClick={() => setShowAdd(true)}>
+        <button
+          style={s.fabBtn}
+          onClick={() => {
+            setGalleryFile(null);
+            setShowAdd(true);
+          }}
+        >
           <svg
             width="24"
             height="24"
