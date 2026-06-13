@@ -102,12 +102,12 @@ export default function App() {
 
   const monthExpenses = expenses.filter((e) => {
     if (!e.date) return false;
-    const d = new Date(e.date);
-    return d.getMonth() === month && d.getFullYear() === year;
+    const [y, m, d] = e.date.split("T")[0].split("-").map(Number);
+    return m - 1 === month && y === year;
   });
 
   const byDay = monthExpenses.reduce((acc, e) => {
-    const d = new Date(e.date).getDate();
+    const d = parseInt(e.date.split("T")[0].split("-")[2]);
     if (!acc[d]) acc[d] = [];
     acc[d].push(e);
     return acc;
@@ -126,8 +126,8 @@ export default function App() {
     const isActive = i === month;
     const hasExp = expenses.some((e) => {
       if (!e.date) return false;
-      const d = new Date(e.date);
-      return d.getMonth() === i && d.getFullYear() === year;
+      const [y, m] = e.date.split("T")[0].split("-").map(Number);
+      return m - 1 === i && y === year;
     });
     if (isActive) return s.monthRingActive;
     if (hasExp) return s.monthRingHasExp;
