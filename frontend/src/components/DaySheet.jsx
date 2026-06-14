@@ -33,10 +33,9 @@ export default function DaySheet({
     if (index > 0) setIndex((i) => i - 1);
   };
 
-  const handleTap = (e) => {
-    const x = e.clientX || (e.touches && e.touches[0].clientX);
+  const handleTap = (clientX) => {
     const mid = window.innerWidth / 2;
-    if (x < mid) goPrev();
+    if (clientX < mid) goPrev();
     else goNext();
   };
 
@@ -54,48 +53,47 @@ export default function DaySheet({
     >
       <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
 
-      {/* Full screen tappable area */}
-      <div
-        style={{ flex: 1, position: "relative", overflow: "hidden" }}
-        onClick={handleTap}
-        onTouchEnd={(e) => {
-          e.preventDefault();
-          handleTap(
-            e.changedTouches[0] ? { clientX: e.changedTouches[0].clientX } : e,
-          );
-        }}
-      >
-        {e.photo_url ? (
-          <img
-            src={`${API}${e.photo_url}`}
-            alt=""
-            draggable={false}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-              pointerEvents: "none",
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              background: `linear-gradient(135deg, ${cat.color}22, #000)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 120,
-              pointerEvents: "none",
-            }}
-          >
-            {cat.icon}
-          </div>
-        )}
+      {/* Full screen area */}
+      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        {/* Photo or icon — tappable background */}
+        <div
+          style={{ position: "absolute", inset: 0, cursor: "pointer" }}
+          onClick={(ev) => handleTap(ev.clientX)}
+          onTouchEnd={(ev) => {
+            ev.preventDefault();
+            if (ev.changedTouches[0]) handleTap(ev.changedTouches[0].clientX);
+          }}
+        >
+          {e.photo_url ? (
+            <img
+              src={`${API}${e.photo_url}`}
+              alt=""
+              draggable={false}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                background: `linear-gradient(135deg, ${cat.color}22, #000)`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 120,
+              }}
+            >
+              {cat.icon}
+            </div>
+          )}
+        </div>
 
-        {/* Left tap indicator — faint */}
+        {/* Left tap indicator */}
         {index > 0 && (
           <div
             style={{
@@ -129,7 +127,7 @@ export default function DaySheet({
           </div>
         )}
 
-        {/* Right tap indicator — faint */}
+        {/* Right tap indicator */}
         {index < expenses.length - 1 && (
           <div
             style={{
@@ -163,7 +161,32 @@ export default function DaySheet({
           </div>
         )}
 
-        {/* Top bar */}
+        {/* Story progress bars */}
+        <div
+          style={{
+            position: "absolute",
+            top: 44,
+            left: 16,
+            right: 16,
+            display: "flex",
+            gap: 4,
+            pointerEvents: "none",
+          }}
+        >
+          {expenses.map((_, i) => (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                height: 2,
+                borderRadius: 1,
+                background: i <= index ? "#fff" : "rgba(255,255,255,0.3)",
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Top bar — separate from tap area */}
         <div
           style={{
             position: "absolute",
@@ -179,8 +202,10 @@ export default function DaySheet({
           }}
         >
           <button
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={onClose}
+            onTouchEnd={(ev) => {
+              ev.stopPropagation();
+              ev.preventDefault();
               onClose();
             }}
             style={{
@@ -212,31 +237,6 @@ export default function DaySheet({
               {index + 1} / {expenses.length} · {fmt(total)} total
             </div>
           </div>
-        </div>
-
-        {/* Story progress bars at top */}
-        <div
-          style={{
-            position: "absolute",
-            top: 44,
-            left: 16,
-            right: 16,
-            display: "flex",
-            gap: 4,
-            pointerEvents: "none",
-          }}
-        >
-          {expenses.map((_, i) => (
-            <div
-              key={i}
-              style={{
-                flex: 1,
-                height: 2,
-                borderRadius: 1,
-                background: i <= index ? "#fff" : "rgba(255,255,255,0.3)",
-              }}
-            />
-          ))}
         </div>
 
         {/* Bottom info */}
@@ -368,6 +368,11 @@ export default function DaySheet({
                     ev.stopPropagation();
                     setIndex(i);
                   }}
+                  onTouchEnd={(ev) => {
+                    ev.stopPropagation();
+                    ev.preventDefault();
+                    setIndex(i);
+                  }}
                   style={{
                     width: i === index ? 20 : 6,
                     height: 6,
@@ -390,6 +395,12 @@ export default function DaySheet({
                     onSettle(e.id);
                     setToast("Marked as settled");
                   }}
+                  onTouchEnd={(ev) => {
+                    ev.stopPropagation();
+                    ev.preventDefault();
+                    onSettle(e.id);
+                    setToast("Marked as settled");
+                  }}
                   style={{
                     background: "rgba(52,211,153,0.15)",
                     border: "1px solid rgba(52,211,153,0.4)",
@@ -409,6 +420,12 @@ export default function DaySheet({
               <button
                 onClick={(ev) => {
                   ev.stopPropagation();
+                  onDelete(e.id);
+                  setToast("Deleted");
+                }}
+                onTouchEnd={(ev) => {
+                  ev.stopPropagation();
+                  ev.preventDefault();
                   onDelete(e.id);
                   setToast("Deleted");
                 }}
