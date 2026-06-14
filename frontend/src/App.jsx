@@ -8,6 +8,7 @@ import AddModal from "./components/AddModal";
 import BudgetModal from "./components/BudgetModal";
 import DayCell from "./components/DayCell";
 import DaySheet from "./components/DaySheet";
+import StatsPanel from "./components/StatsPanel";
 import Toast from "./components/Toast";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -22,9 +23,9 @@ export default function App() {
   const [year, setYear] = useState(NOW_YEAR);
   const [showAdd, setShowAdd] = useState(false);
   const [showBudget, setShowBudget] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   const [daySheet, setDaySheet] = useState(null);
   const [toast, setToast] = useState(null);
-  const [showInsights, setShowInsights] = useState(false);
   const [insights, setInsights] = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
   const galleryRef = useRef();
@@ -85,12 +86,16 @@ export default function App() {
 
   const getInsights = async () => {
     setLoadingInsights(true);
-    setShowInsights(true);
     try {
       const res = await axios.get(`${API}/insights`);
       setInsights(res.data.insights);
     } catch {}
     setLoadingInsights(false);
+  };
+
+  const handleShowStats = () => {
+    setShowStats(true);
+    if (!insights) getInsights();
   };
 
   const firstDay = new Date(year, month, 1).getDay();
@@ -102,7 +107,7 @@ export default function App() {
 
   const monthExpenses = expenses.filter((e) => {
     if (!e.date) return false;
-    const [y, m, d] = e.date.split("T")[0].split("-").map(Number);
+    const [y, m] = e.date.split("T")[0].split("-").map(Number);
     return m - 1 === month && y === year;
   });
 
@@ -197,7 +202,6 @@ export default function App() {
                     {m.slice(0, 3)}
                   </div>
                 </div>
-                {/* Orange dot under current real month */}
                 {isToday && (
                   <div
                     style={{
@@ -333,64 +337,6 @@ export default function App() {
             />
           </div>
         </div>
-
-        {/* Insights */}
-        {showInsights && (
-          <div style={s.insightsCard}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 10,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "#444",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                Spending insights
-              </span>
-              <button
-                onClick={() => setShowInsights(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#444",
-                  cursor: "pointer",
-                  fontSize: 14,
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            {loadingInsights ? (
-              <p style={{ fontSize: 13, color: "#444" }}>Analyzing...</p>
-            ) : (
-              insights
-                .split("\n")
-                .filter((l) => l.trim())
-                .map((l, i) => (
-                  <p
-                    key={i}
-                    style={{
-                      fontSize: 13,
-                      color: "#666",
-                      lineHeight: 1.6,
-                      marginBottom: 6,
-                    }}
-                  >
-                    {l.replace(/\*\*/g, "")}
-                  </p>
-                ))
-            )}
-          </div>
-        )}
       </div>
 
       {/* Bottom tab bar */}
@@ -448,20 +394,14 @@ export default function App() {
           </svg>
         </button>
 
-        {/* AI insights */}
-        <button
-          style={s.tabBtn}
-          onClick={() => {
-            setShowInsights(!showInsights);
-            if (!insights) getInsights();
-          }}
-        >
+        {/* Stats + insights */}
+        <button style={s.tabBtn} onClick={handleShowStats}>
           <svg
             width="24"
             height="24"
             viewBox="0 0 24 24"
             fill="none"
-            stroke={showInsights ? "#F97316" : "#444"}
+            stroke={showStats ? "#F97316" : "#444"}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -470,9 +410,7 @@ export default function App() {
             <line x1="12" y1="20" x2="12" y2="4" />
             <line x1="6" y1="20" x2="6" y2="14" />
           </svg>
-          {showInsights && (
-            <div style={{ ...s.tabDot, background: "#F97316" }} />
-          )}
+          {showStats && <div style={{ ...s.tabDot, background: "#F97316" }} />}
         </button>
       </div>
 
@@ -493,6 +431,16 @@ export default function App() {
           onClose={() => setShowBudget(false)}
           onSaved={fetchAll}
           setToast={setToast}
+        />
+      )}
+      {showStats && (
+        <StatsPanel
+          expenses={monthExpenses}
+          total={totalSpent}
+          insights={insights}
+          loadingInsights={loadingInsights}
+          onRefresh={getInsights}
+          onClose={() => setShowStats(false)}
         />
       )}
       {daySheet && (
