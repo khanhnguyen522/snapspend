@@ -95,7 +95,6 @@ export default function App() {
 
   const handleShowStats = () => {
     setShowStats(true);
-    if (!insights) getInsights();
   };
 
   const firstDay = new Date(year, month, 1).getDay();

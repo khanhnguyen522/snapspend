@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { getCat, fmt } from "../utils";
 
 function CategoryBreakdown({ expenses, total }) {
@@ -92,13 +93,21 @@ export default function StatsPanel({
   onRefresh,
   onClose,
 }) {
+  // Lock background scroll
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 500,
-        background: "rgba(0,0,0,0.95)",
+        background: "rgba(0,0,0,0.98)",
         display: "flex",
         flexDirection: "column",
         animation: "slideUp 0.25s ease",
@@ -114,6 +123,7 @@ export default function StatsPanel({
           alignItems: "center",
           padding: "52px 20px 16px",
           borderBottom: "1px solid #111",
+          flexShrink: 0,
         }}
       >
         <h2 style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>Stats</h2>
@@ -152,7 +162,7 @@ export default function StatsPanel({
           <CategoryBreakdown expenses={expenses} total={total} />
         </div>
 
-        {/* AI Insights */}
+        {/* AI Insights — only show when analyzed */}
         <div style={{ borderTop: "1px solid #111", paddingTop: 20 }}>
           <div
             style={{
@@ -173,25 +183,51 @@ export default function StatsPanel({
             >
               AI insights
             </p>
+            {insights && !loadingInsights && (
+              <button
+                onClick={onRefresh}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#F97316",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
+                ↻ Refresh
+              </button>
+            )}
+          </div>
+
+          {!insights && !loadingInsights && (
             <button
               onClick={onRefresh}
               style={{
-                background: "none",
+                width: "100%",
+                padding: "14px",
+                background: "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)",
                 border: "none",
-                color: "#F97316",
-                fontSize: 12,
+                borderRadius: 12,
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 700,
                 cursor: "pointer",
                 fontFamily: "Inter, sans-serif",
               }}
             >
-              {loadingInsights ? "Analyzing..." : "↻ Refresh"}
+              ✦ Analyze my spending
             </button>
-          </div>
-          {loadingInsights ? (
+          )}
+
+          {loadingInsights && (
             <p style={{ fontSize: 13, color: "#444" }}>
               Analyzing your spending...
             </p>
-          ) : insights ? (
+          )}
+
+          {insights &&
+            !loadingInsights &&
             insights
               .split("\n")
               .filter((l) => l.trim())
@@ -207,12 +243,7 @@ export default function StatsPanel({
                 >
                   {l.replace(/\*\*/g, "")}
                 </p>
-              ))
-          ) : (
-            <p style={{ fontSize: 13, color: "#444" }}>
-              Tap refresh to get insights.
-            </p>
-          )}
+              ))}
         </div>
       </div>
     </div>
