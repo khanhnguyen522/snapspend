@@ -25,8 +25,12 @@ export default function DaySheet({
     day: "numeric",
   });
 
-  const e = expenses[index];
-  const cat = getCat(e.category);
+  if (!expenses || expenses.length === 0) {
+    onClose();
+    return null;
+  }
+  const e = expenses[index] || expenses[0];
+  const cat = getCat(e?.category || "other");
   const isDebt = e.paid_by && !e.is_settled;
   const total = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
 
