@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { getCat, fmt } from "../utils";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -14,6 +14,7 @@ export default function DaySheet({
   setToast,
 }) {
   const [index, setIndex] = useState(0);
+  const touchStart = useRef(null);
 
   const label = new Date(year, month, day).toLocaleDateString("en-US", {
     weekday: "long",
@@ -39,6 +40,24 @@ export default function DaySheet({
     else goNext();
   };
 
+  const onTouchStart = (ev) => {
+    touchStart.current = { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+  };
+
+  const onTouchEnd = (ev) => {
+    ev.preventDefault();
+    const t = ev.changedTouches[0];
+    if (!t || !touchStart.current) return;
+    const dy = t.clientY - touchStart.current.y;
+    const dx = Math.abs(t.clientX - touchStart.current.x);
+    if (dy > 80 && dx < 60) {
+      onClose();
+      return;
+    }
+    handleTap(t.clientX);
+    touchStart.current = null;
+  };
+
   return (
     <div
       style={{
@@ -53,16 +72,13 @@ export default function DaySheet({
     >
       <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
 
-      {/* Full screen area */}
       <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-        {/* Photo or icon — tappable background */}
+        {/* Tappable background */}
         <div
           style={{ position: "absolute", inset: 0, cursor: "pointer" }}
           onClick={(ev) => handleTap(ev.clientX)}
-          onTouchEnd={(ev) => {
-            ev.preventDefault();
-            if (ev.changedTouches[0]) handleTap(ev.changedTouches[0].clientX);
-          }}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
         >
           {e.photo_url ? (
             <img
@@ -186,7 +202,7 @@ export default function DaySheet({
           ))}
         </div>
 
-        {/* Top bar — separate from tap area */}
+        {/* Top bar */}
         <div
           style={{
             position: "absolute",
