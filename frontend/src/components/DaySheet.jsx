@@ -17,6 +17,7 @@ export default function DaySheet({
   const [dragY, setDragY] = useState(0);
   const [dragging, setDragging] = useState(false);
   const touchStart = useRef(null);
+  const didDrag = useRef(false);
 
   const label = new Date(year, month, day).toLocaleDateString("en-US", {
     weekday: "long",
@@ -38,6 +39,7 @@ export default function DaySheet({
 
   const onTouchStart = (ev) => {
     touchStart.current = { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+    didDrag.current = false;
     setDragging(false);
     setDragY(0);
   };
@@ -47,21 +49,22 @@ export default function DaySheet({
     const dy = ev.touches[0].clientY - touchStart.current.y;
     const dx = Math.abs(ev.touches[0].clientX - touchStart.current.x);
     if (dy > 10 && dy > dx) {
+      ev.preventDefault(); // prevent background scroll
+      didDrag.current = true;
       setDragging(true);
       setDragY(Math.max(0, dy));
     }
   };
 
   const onTouchEnd = (ev) => {
+    ev.preventDefault();
     if (!touchStart.current) return;
     const t = ev.changedTouches[0];
     const dy = t.clientY - touchStart.current.y;
-    const dx = Math.abs(t.clientX - touchStart.current.x);
 
-    if (dragging && dy > 120) {
+    if (didDrag.current && dy > 120) {
       onClose();
-    } else if (!dragging || dy < 10) {
-      // It was a tap not a drag
+    } else if (!didDrag.current) {
       const mid = window.innerWidth / 2;
       if (t.clientX < mid) goPrev();
       else goNext();
@@ -70,6 +73,7 @@ export default function DaySheet({
     setDragY(0);
     setDragging(false);
     touchStart.current = null;
+    didDrag.current = false;
   };
 
   const progress = Math.min(dragY / 300, 1);
@@ -88,8 +92,6 @@ export default function DaySheet({
         flexDirection: "column",
       }}
     >
-      <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
-
       <div
         style={{
           flex: 1,
@@ -102,16 +104,9 @@ export default function DaySheet({
             : "transform 0.3s ease, border-radius 0.3s ease",
         }}
       >
-        {/* Tappable background */}
+        {/* Tappable background — touch only, no onClick to avoid double fire */}
         <div
           style={{ position: "absolute", inset: 0, cursor: "pointer" }}
-          onClick={(ev) => {
-            if (!dragging) {
-              const mid = window.innerWidth / 2;
-              if (ev.clientX < mid) goPrev();
-              else goNext();
-            }
-          }}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -254,12 +249,12 @@ export default function DaySheet({
           }}
         >
           <button
-            onClick={onClose}
             onTouchEnd={(ev) => {
               ev.stopPropagation();
               ev.preventDefault();
               onClose();
             }}
+            onClick={onClose}
             style={{
               background: "rgba(0,0,0,0.5)",
               border: "1px solid rgba(255,255,255,0.1)",
@@ -416,10 +411,6 @@ export default function DaySheet({
               {expenses.map((_, i) => (
                 <div
                   key={i}
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    setIndex(i);
-                  }}
                   onTouchEnd={(ev) => {
                     ev.stopPropagation();
                     ev.preventDefault();
@@ -442,14 +433,14 @@ export default function DaySheet({
             <div style={{ display: "flex", gap: 8 }}>
               {isDebt && (
                 <button
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    onSettle(e.id);
-                    setToast("Marked as settled");
-                  }}
                   onTouchEnd={(ev) => {
                     ev.stopPropagation();
                     ev.preventDefault();
+                    onSettle(e.id);
+                    setToast("Marked as settled");
+                  }}
+                  onClick={(ev) => {
+                    ev.stopPropagation();
                     onSettle(e.id);
                     setToast("Marked as settled");
                   }}
@@ -470,14 +461,14 @@ export default function DaySheet({
                 </button>
               )}
               <button
-                onClick={(ev) => {
-                  ev.stopPropagation();
-                  onDelete(e.id);
-                  setToast("Deleted");
-                }}
                 onTouchEnd={(ev) => {
                   ev.stopPropagation();
                   ev.preventDefault();
+                  onDelete(e.id);
+                  setToast("Deleted");
+                }}
+                onClick={(ev) => {
+                  ev.stopPropagation();
                   onDelete(e.id);
                   setToast("Deleted");
                 }}
