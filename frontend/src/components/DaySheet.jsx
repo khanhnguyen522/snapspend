@@ -14,8 +14,6 @@ export default function DaySheet({
   setToast,
 }) {
   const [index, setIndex] = useState(0);
-  const [dragStart, setDragStart] = useState(null);
-  const [offset, setOffset] = useState(0);
 
   const label = new Date(year, month, day).toLocaleDateString("en-US", {
     weekday: "long",
@@ -29,39 +27,17 @@ export default function DaySheet({
   const total = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
 
   const goNext = () => {
-    if (index < expenses.length - 1) {
-      setIndex((i) => i + 1);
-      setOffset(0);
-    }
+    if (index < expenses.length - 1) setIndex((i) => i + 1);
   };
   const goPrev = () => {
-    if (index > 0) {
-      setIndex((i) => i - 1);
-      setOffset(0);
-    }
+    if (index > 0) setIndex((i) => i - 1);
   };
 
-  const onTouchStart = (ev) => setDragStart(ev.touches[0].clientX);
-  const onTouchMove = (ev) => {
-    if (dragStart === null) return;
-    setOffset(ev.touches[0].clientX - dragStart);
-  };
-  const onTouchEnd = () => {
-    if (offset < -60) goNext();
-    else if (offset > 60) goPrev();
-    setOffset(0);
-    setDragStart(null);
-  };
-  const onMouseDown = (ev) => setDragStart(ev.clientX);
-  const onMouseMove = (ev) => {
-    if (dragStart === null) return;
-    setOffset(ev.clientX - dragStart);
-  };
-  const onMouseUp = () => {
-    if (offset < -60) goNext();
-    else if (offset > 60) goPrev();
-    setOffset(0);
-    setDragStart(null);
+  const handleTap = (e) => {
+    const x = e.clientX || (e.touches && e.touches[0].clientX);
+    const mid = window.innerWidth / 2;
+    if (x < mid) goPrev();
+    else goNext();
   };
 
   return (
@@ -78,56 +54,114 @@ export default function DaySheet({
     >
       <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
 
+      {/* Full screen tappable area */}
       <div
-        style={{
-          flex: 1,
-          position: "relative",
-          overflow: "hidden",
-          userSelect: "none",
+        style={{ flex: 1, position: "relative", overflow: "hidden" }}
+        onClick={handleTap}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          handleTap(
+            e.changedTouches[0] ? { clientX: e.changedTouches[0].clientX } : e,
+          );
         }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
       >
-        <div
-          style={{
-            transform: `translateX(${offset}px)`,
-            transition: dragStart ? "none" : "transform 0.25s ease",
-            height: "100%",
-          }}
-        >
-          {e.photo_url ? (
-            <img
-              src={`${API}${e.photo_url}`}
-              alt=""
-              draggable={false}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-              }}
-            />
-          ) : (
+        {e.photo_url ? (
+          <img
+            src={`${API}${e.photo_url}`}
+            alt=""
+            draggable={false}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+              pointerEvents: "none",
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              background: `linear-gradient(135deg, ${cat.color}22, #000)`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 120,
+              pointerEvents: "none",
+            }}
+          >
+            {cat.icon}
+          </div>
+        )}
+
+        {/* Left tap indicator — faint */}
+        {index > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: "30%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              paddingLeft: 16,
+              pointerEvents: "none",
+            }}
+          >
             <div
               style={{
-                width: "100%",
-                height: "100%",
-                background: `linear-gradient(135deg, ${cat.color}22, #000)`,
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.1)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 120,
+                fontSize: 18,
+                color: "rgba(255,255,255,0.4)",
               }}
             >
-              {cat.icon}
+              ‹
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Right tap indicator — faint */}
+        {index < expenses.length - 1 && (
+          <div
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: "30%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              paddingRight: 16,
+              pointerEvents: "none",
+            }}
+          >
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 18,
+                color: "rgba(255,255,255,0.4)",
+              }}
+            >
+              ›
+            </div>
+          </div>
+        )}
 
         {/* Top bar */}
         <div
@@ -141,10 +175,14 @@ export default function DaySheet({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
+            pointerEvents: "none",
           }}
         >
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             style={{
               background: "rgba(0,0,0,0.5)",
               border: "1px solid rgba(255,255,255,0.1)",
@@ -155,6 +193,7 @@ export default function DaySheet({
               fontWeight: 600,
               cursor: "pointer",
               backdropFilter: "blur(12px)",
+              pointerEvents: "all",
             }}
           >
             ✕
@@ -175,6 +214,31 @@ export default function DaySheet({
           </div>
         </div>
 
+        {/* Story progress bars at top */}
+        <div
+          style={{
+            position: "absolute",
+            top: 44,
+            left: 16,
+            right: 16,
+            display: "flex",
+            gap: 4,
+            pointerEvents: "none",
+          }}
+        >
+          {expenses.map((_, i) => (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                height: 2,
+                borderRadius: 1,
+                background: i <= index ? "#fff" : "rgba(255,255,255,0.3)",
+              }}
+            />
+          ))}
+        </div>
+
         {/* Bottom info */}
         <div
           style={{
@@ -184,6 +248,7 @@ export default function DaySheet({
             right: 0,
             background: "linear-gradient(transparent, rgba(0,0,0,0.95))",
             padding: "60px 20px 28px",
+            pointerEvents: "none",
           }}
         >
           <div
@@ -219,7 +284,6 @@ export default function DaySheet({
               "{e.note}"
             </div>
           )}
-
           <div
             style={{
               display: "flex",
@@ -293,14 +357,17 @@ export default function DaySheet({
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
+              pointerEvents: "all",
             }}
           >
-            {/* Dots */}
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
               {expenses.map((_, i) => (
                 <div
                   key={i}
-                  onClick={() => setIndex(i)}
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    setIndex(i);
+                  }}
                   style={{
                     width: i === index ? 20 : 6,
                     height: 6,
@@ -315,12 +382,11 @@ export default function DaySheet({
                 />
               ))}
             </div>
-
-            {/* Action buttons */}
             <div style={{ display: "flex", gap: 8 }}>
               {isDebt && (
                 <button
-                  onClick={() => {
+                  onClick={(ev) => {
+                    ev.stopPropagation();
                     onSettle(e.id);
                     setToast("Marked as settled");
                   }}
@@ -341,7 +407,8 @@ export default function DaySheet({
                 </button>
               )}
               <button
-                onClick={() => {
+                onClick={(ev) => {
+                  ev.stopPropagation();
                   onDelete(e.id);
                   setToast("Deleted");
                 }}
