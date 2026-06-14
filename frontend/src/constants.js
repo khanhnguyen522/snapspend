@@ -1,11 +1,14 @@
 export const CATEGORY_CONFIG = {
   groceries: { color: "#60A5FA", icon: "🛒" },
   food: { color: "#34D399", icon: "🍔" },
+  treats: { color: "#F59E0B", icon: "🧋" },
   dining: { color: "#34D399", icon: "🍽️" },
   shopping: { color: "#A78BFA", icon: "🛍️" },
   transport: { color: "#86EFAC", icon: "🚗" },
   entertainment: { color: "#F9A8D4", icon: "🎬" },
   health: { color: "#FCA5A5", icon: "💊" },
+  insurance: { color: "#64748B", icon: "🛡️" },
+  rent: { color: "#94A3B8", icon: "🏠" },
   other: { color: "#94A3B8", icon: "📄" },
 };
 
