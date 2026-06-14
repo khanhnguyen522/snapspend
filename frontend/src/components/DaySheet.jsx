@@ -14,6 +14,8 @@ export default function DaySheet({
   setToast,
 }) {
   const [index, setIndex] = useState(0);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const touchStart = useRef(null);
 
   const label = new Date(year, month, day).toLocaleDateString("en-US", {
@@ -34,29 +36,46 @@ export default function DaySheet({
     if (index > 0) setIndex((i) => i - 1);
   };
 
-  const handleTap = (clientX) => {
-    const mid = window.innerWidth / 2;
-    if (clientX < mid) goPrev();
-    else goNext();
-  };
-
   const onTouchStart = (ev) => {
     touchStart.current = { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+    setDragging(false);
+    setDragY(0);
+  };
+
+  const onTouchMove = (ev) => {
+    if (!touchStart.current) return;
+    const dy = ev.touches[0].clientY - touchStart.current.y;
+    const dx = Math.abs(ev.touches[0].clientX - touchStart.current.x);
+    if (dy > 10 && dy > dx) {
+      setDragging(true);
+      setDragY(Math.max(0, dy));
+    }
   };
 
   const onTouchEnd = (ev) => {
-    ev.preventDefault();
+    if (!touchStart.current) return;
     const t = ev.changedTouches[0];
-    if (!t || !touchStart.current) return;
     const dy = t.clientY - touchStart.current.y;
     const dx = Math.abs(t.clientX - touchStart.current.x);
-    if (dy > 80 && dx < 60) {
+
+    if (dragging && dy > 120) {
       onClose();
-      return;
+    } else if (!dragging || dy < 10) {
+      // It was a tap not a drag
+      const mid = window.innerWidth / 2;
+      if (t.clientX < mid) goPrev();
+      else goNext();
     }
-    handleTap(t.clientX);
+
+    setDragY(0);
+    setDragging(false);
     touchStart.current = null;
   };
+
+  const progress = Math.min(dragY / 300, 1);
+  const scale = 1 - progress * 0.15;
+  const borderRadius = progress * 24;
+  const bgOpacity = 1 - progress * 0.5;
 
   return (
     <div
@@ -64,20 +83,37 @@ export default function DaySheet({
         position: "fixed",
         inset: 0,
         zIndex: 1000,
-        background: "#000",
+        background: `rgba(0,0,0,${bgOpacity})`,
         display: "flex",
         flexDirection: "column",
-        animation: "fadeIn 0.2s ease",
       }}
     >
       <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
 
-      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+      <div
+        style={{
+          flex: 1,
+          position: "relative",
+          overflow: "hidden",
+          transform: `translateY(${dragY}px) scale(${scale})`,
+          borderRadius: borderRadius,
+          transition: dragging
+            ? "none"
+            : "transform 0.3s ease, border-radius 0.3s ease",
+        }}
+      >
         {/* Tappable background */}
         <div
           style={{ position: "absolute", inset: 0, cursor: "pointer" }}
-          onClick={(ev) => handleTap(ev.clientX)}
+          onClick={(ev) => {
+            if (!dragging) {
+              const mid = window.innerWidth / 2;
+              if (ev.clientX < mid) goPrev();
+              else goNext();
+            }
+          }}
           onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
           {e.photo_url ? (
