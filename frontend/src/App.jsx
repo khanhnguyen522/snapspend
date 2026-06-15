@@ -213,7 +213,6 @@ export default function App() {
               Hi, {user?.name} 👋
             </p>
           </div>
-          <h1 style={s.logo}>snapspend</h1>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button
               onClick={() => setShowSearch(true)}
