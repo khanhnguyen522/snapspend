@@ -48,8 +48,13 @@ export default function App() {
   }, [user]);
 
   useEffect(() => {
-    if (user) fetchAll();
-  }, [user]);
+    if (user) {
+      const token = localStorage.getItem("token");
+      if (token)
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      fetchAll();
+    }
+  }, []);
 
   useEffect(() => {
     if (monthStripRef.current) {
@@ -90,8 +95,10 @@ export default function App() {
   const handleLogin = (u) => {
     setUser(u);
     const token = localStorage.getItem("token");
-    if (token)
+    if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      fetchAll();
+    }
   };
 
   const logout = () => {
