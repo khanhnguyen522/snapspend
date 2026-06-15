@@ -9,6 +9,7 @@ import BudgetModal from "./components/BudgetModal";
 import DayCell from "./components/DayCell";
 import DaySheet from "./components/DaySheet";
 import StatsPanel from "./components/StatsPanel";
+import SearchModal from "./components/SearchModal";
 import Toast from "./components/Toast";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -24,6 +25,7 @@ export default function App() {
   const [showAdd, setShowAdd] = useState(false);
   const [showBudget, setShowBudget] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [daySheet, setDaySheet] = useState(null);
   const [toast, setToast] = useState(null);
   const [insights, setInsights] = useState("");
@@ -93,8 +95,15 @@ export default function App() {
     setLoadingInsights(false);
   };
 
-  const handleShowStats = () => {
-    setShowStats(true);
+  const handleSelectDay = (day, month, year, expense) => {
+    setMonth(month);
+    setYear(year);
+    const dayExpenses = expenses.filter((e) => {
+      if (!e.date) return false;
+      const [y, m, d] = e.date.split("T")[0].split("-").map(Number);
+      return d === day && m - 1 === month && y === year;
+    });
+    setDaySheet({ day, expenses: dayExpenses });
   };
 
   const firstDay = new Date(year, month, 1).getDay();
@@ -160,6 +169,29 @@ export default function App() {
         <div style={s.header}>
           <h1 style={s.logo}>snapspend</h1>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              onClick={() => setShowSearch(true)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 4,
+              }}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#444"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </button>
             <span style={{ fontSize: 13, color: "#555" }}>{year}</span>
             <button
               onClick={() => setShowBudget(true)}
@@ -340,7 +372,6 @@ export default function App() {
 
       {/* Bottom tab bar */}
       <div style={s.bottomBar}>
-        {/* Gallery picker */}
         <button style={s.tabBtn} onClick={() => galleryRef.current?.click()}>
           <svg
             width="24"
@@ -370,7 +401,6 @@ export default function App() {
           }}
         />
 
-        {/* Center camera FAB */}
         <button
           style={s.fabBtn}
           onClick={() => {
@@ -393,8 +423,7 @@ export default function App() {
           </svg>
         </button>
 
-        {/* Stats + insights */}
-        <button style={s.tabBtn} onClick={handleShowStats}>
+        <button style={s.tabBtn} onClick={() => setShowStats(true)}>
           <svg
             width="24"
             height="24"
@@ -440,6 +469,13 @@ export default function App() {
           loadingInsights={loadingInsights}
           onRefresh={getInsights}
           onClose={() => setShowStats(false)}
+        />
+      )}
+      {showSearch && (
+        <SearchModal
+          expenses={expenses}
+          onClose={() => setShowSearch(false)}
+          onSelectDay={handleSelectDay}
         />
       )}
       {daySheet && (
