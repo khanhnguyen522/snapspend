@@ -209,8 +209,15 @@ export default function App() {
         <div style={s.header}>
           <div>
             <h1 style={s.logo}>snapspend</h1>
-            <p style={{ fontSize: 12, color: "#444", marginTop: 2 }}>
-              Hi, {user?.name} 👋
+            <p
+              style={{
+                fontSize: 13,
+                color: "#666",
+                marginTop: 3,
+                fontWeight: 500,
+              }}
+            >
+              Hi, {user?.name}
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
