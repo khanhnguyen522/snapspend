@@ -3,61 +3,118 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const pool = require("./src/db");
 const { readReceipt } = require("./src/claudeService");
 
 const upload = multer({ dest: "uploads/" });
-
 const app = express();
+const JWT_SECRET = process.env.JWT_SECRET || "snapspend-secret-key";
+
 app.use(
   cors({
     origin: "*",
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Health check
+// ── Auth middleware ────────────────────────────────────────────────────────────
+const auth = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "No token" });
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: "Invalid token" });
+  }
+};
+
+// ── Health check ───────────────────────────────────────────────────────────────
 app.get("/", (req, res) => res.json({ message: "Snapspend API running" }));
 
-// Get budget
-app.get("/budget", async (req, res) => {
-  const result = await pool.query(
-    "SELECT value FROM settings WHERE key = 'monthly_budget'",
-  );
-  res.json({ budget: result.rows[0]?.value || 500 });
+// ── Auth routes ────────────────────────────────────────────────────────────────
+app.post("/auth/register", async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ error: "Email and password required" });
+    const exists = await pool.query("SELECT id FROM users WHERE email = $1", [
+      email.toLowerCase(),
+    ]);
+    if (exists.rows.length > 0)
+      return res.status(400).json({ error: "Email already registered" });
+    const hash = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      "INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name",
+      [email.toLowerCase(), hash, name || email.split("@")[0]],
+    );
+    const user = result.rows[0];
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "30d",
+    });
+    res.json({ token, user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Update budget
-app.put("/budget", async (req, res) => {
-  const { budget } = req.body;
-  await pool.query(
-    "INSERT INTO settings (key, value) VALUES ('monthly_budget', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
-    [budget],
-  );
-  res.json({ budget });
+app.post("/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ error: "Email and password required" });
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email.toLowerCase(),
+    ]);
+    if (result.rows.length === 0)
+      return res.status(400).json({ error: "Invalid email or password" });
+    const user = result.rows[0];
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid)
+      return res.status(400).json({ error: "Invalid email or password" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "30d",
+    });
+    res.json({
+      token,
+      user: { id: user.id, email: user.email, name: user.name },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Get all expenses
-app.get("/expenses", async (req, res) => {
+app.get("/auth/me", auth, async (req, res) => {
   const result = await pool.query(
-    "SELECT * FROM expenses ORDER BY date DESC, created_at DESC",
+    "SELECT id, email, name FROM users WHERE id = $1",
+    [req.user.id],
+  );
+  res.json(result.rows[0]);
+});
+
+// ── Expenses ───────────────────────────────────────────────────────────────────
+app.get("/expenses", auth, async (req, res) => {
+  const result = await pool.query(
+    "SELECT * FROM expenses WHERE user_id = $1 ORDER BY date DESC, created_at DESC",
+    [req.user.id],
   );
   res.json(result.rows);
 });
 
-// Scan receipt — auto extract via Claude
-app.post("/expenses/scan", upload.single("photo"), async (req, res) => {
+app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
   try {
     const data = await readReceipt(req.file.path);
     const photo_url = `/uploads/${req.file.filename}`;
     const result = await pool.query(
-      `INSERT INTO expenses (store_name, amount, category, date, photo_url, entry_type, note, paid_by)
-       VALUES ($1, $2, $3, $4, $5, 'scan', $6, $7) RETURNING *`,
+      `INSERT INTO expenses (store_name, amount, category, date, photo_url, entry_type, note, paid_by, user_id)
+       VALUES ($1, $2, $3, $4, $5, 'scan', $6, $7, $8) RETURNING *`,
       [
         data.store_name,
         data.amount,
@@ -66,23 +123,22 @@ app.post("/expenses/scan", upload.single("photo"), async (req, res) => {
         photo_url,
         req.body.note || null,
         req.body.paid_by || null,
+        req.user.id,
       ],
     );
     res.json({ expense: result.rows[0], extracted: data });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Manual entry
-app.post("/expenses/manual", upload.single("photo"), async (req, res) => {
+app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
   try {
     const { store_name, amount, category, date, note, paid_by } = req.body;
     const photo_url = req.file ? `/uploads/${req.file.filename}` : null;
     const result = await pool.query(
-      `INSERT INTO expenses (store_name, amount, category, date, photo_url, note, paid_by, entry_type)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'manual') RETURNING *`,
+      `INSERT INTO expenses (store_name, amount, category, date, photo_url, note, paid_by, entry_type, user_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'manual', $8) RETURNING *`,
       [
         store_name || "Manual entry",
         parseFloat(amount),
@@ -91,6 +147,7 @@ app.post("/expenses/manual", upload.single("photo"), async (req, res) => {
         photo_url,
         note || null,
         paid_by || null,
+        req.user.id,
       ],
     );
     res.json(result.rows[0]);
@@ -99,65 +156,21 @@ app.post("/expenses/manual", upload.single("photo"), async (req, res) => {
   }
 });
 
-// Settle a debt
-app.patch("/expenses/:id/settle", async (req, res) => {
+app.patch("/expenses/:id/settle", auth, async (req, res) => {
   const result = await pool.query(
-    "UPDATE expenses SET is_settled = true WHERE id = $1 RETURNING *",
-    [req.params.id],
+    "UPDATE expenses SET is_settled = true WHERE id = $1 AND user_id = $2 RETURNING *",
+    [req.params.id, req.user.id],
   );
   res.json(result.rows[0]);
 });
 
-// Delete expense
-app.delete("/expenses/:id", async (req, res) => {
-  const row = await pool.query("SELECT photo_url FROM expenses WHERE id = $1", [
-    req.params.id,
-  ]);
-  if (row.rows[0]?.photo_url) {
-    const filePath = path.join(__dirname, row.rows[0].photo_url);
-    try {
-      fs.unlinkSync(filePath);
-    } catch {}
-  }
-  await pool.query("DELETE FROM expenses WHERE id = $1", [req.params.id]);
-  res.json({ message: "Deleted" });
-});
-
-// AI Insights
-app.get("/insights", async (req, res) => {
-  const result = await pool.query(
-    "SELECT * FROM expenses ORDER BY date DESC LIMIT 50",
-  );
-  if (result.rows.length === 0)
-    return res.json({ insights: "No expenses yet." });
-  const Anthropic = require("@anthropic-ai/sdk");
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const summary = result.rows
-    .map((r) => `${r.store_name} $${r.amount} (${r.category}) ${r.date}`)
-    .join("\n");
-  const msg = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 500,
-    messages: [
-      {
-        role: "user",
-        content: `Analyze these expenses and give 3-4 short insights. Be specific with numbers. One sentence each.\n\n${summary}`,
-      },
-    ],
-  });
-  res.json({ insights: msg.content[0].text });
-});
-
-// Edit expense
-app.patch("/expenses/:id", upload.single("photo"), async (req, res) => {
+app.patch("/expenses/:id", auth, upload.single("photo"), async (req, res) => {
   try {
     const { store_name, amount, category, date, note, paid_by } = req.body;
     const photo_url = req.file ? `/uploads/${req.file.filename}` : undefined;
-
     const fields = [];
     const values = [];
     let idx = 1;
-
     if (store_name !== undefined) {
       fields.push(`store_name=$${idx++}`);
       values.push(store_name);
@@ -186,10 +199,10 @@ app.patch("/expenses/:id", upload.single("photo"), async (req, res) => {
       fields.push(`photo_url=$${idx++}`);
       values.push(photo_url);
     }
-
     values.push(req.params.id);
+    values.push(req.user.id);
     const result = await pool.query(
-      `UPDATE expenses SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`,
+      `UPDATE expenses SET ${fields.join(", ")} WHERE id = $${idx} AND user_id = $${idx + 1} RETURNING *`,
       values,
     );
     res.json(result.rows[0]);
@@ -198,11 +211,48 @@ app.patch("/expenses/:id", upload.single("photo"), async (req, res) => {
   }
 });
 
-// Get category budgets
-app.get("/category-budgets", async (req, res) => {
+app.delete("/expenses/:id", auth, async (req, res) => {
+  const row = await pool.query(
+    "SELECT photo_url FROM expenses WHERE id = $1 AND user_id = $2",
+    [req.params.id, req.user.id],
+  );
+  if (row.rows[0]?.photo_url) {
+    try {
+      fs.unlinkSync(path.join(__dirname, row.rows[0].photo_url));
+    } catch {}
+  }
+  await pool.query("DELETE FROM expenses WHERE id = $1 AND user_id = $2", [
+    req.params.id,
+    req.user.id,
+  ]);
+  res.json({ message: "Deleted" });
+});
+
+// ── Budget ─────────────────────────────────────────────────────────────────────
+app.get("/budget", auth, async (req, res) => {
+  const result = await pool.query(
+    "SELECT value FROM settings WHERE key = 'monthly_budget' AND user_id = $1",
+    [req.user.id],
+  );
+  res.json({ budget: result.rows[0]?.value || 500 });
+});
+
+app.put("/budget", auth, async (req, res) => {
+  const { budget } = req.body;
+  await pool.query(
+    `INSERT INTO settings (key, value, user_id) VALUES ('monthly_budget', $1, $2)
+     ON CONFLICT (key, user_id) DO UPDATE SET value = $1`,
+    [budget, req.user.id],
+  );
+  res.json({ budget });
+});
+
+// ── Category budgets ───────────────────────────────────────────────────────────
+app.get("/category-budgets", auth, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT value FROM settings WHERE key = 'category_budgets'",
+      "SELECT value FROM settings WHERE key = 'category_budgets' AND user_id = $1",
+      [req.user.id],
     );
     const raw = result.rows[0]?.value;
     res.json({ budgets: raw ? JSON.parse(raw) : {} });
@@ -211,19 +261,44 @@ app.get("/category-budgets", async (req, res) => {
   }
 });
 
-// Save category budgets
-app.put("/category-budgets", async (req, res) => {
+app.put("/category-budgets", auth, async (req, res) => {
   try {
     const { budgets } = req.body;
     await pool.query(
-      `INSERT INTO settings (key, value) VALUES ('category_budgets', $1)
-       ON CONFLICT (key) DO UPDATE SET value = $1`,
-      [JSON.stringify(budgets)],
+      `INSERT INTO settings (key, value, user_id) VALUES ('category_budgets', $1, $2)
+       ON CONFLICT (key, user_id) DO UPDATE SET value = $1`,
+      [JSON.stringify(budgets), req.user.id],
     );
     res.json({ budgets });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── AI Insights ────────────────────────────────────────────────────────────────
+app.get("/insights", auth, async (req, res) => {
+  const result = await pool.query(
+    "SELECT * FROM expenses WHERE user_id = $1 ORDER BY date DESC LIMIT 50",
+    [req.user.id],
+  );
+  if (result.rows.length === 0)
+    return res.json({ insights: "No expenses yet." });
+  const Anthropic = require("@anthropic-ai/sdk");
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const summary = result.rows
+    .map((r) => `${r.store_name} $${r.amount} (${r.category}) ${r.date}`)
+    .join("\n");
+  const msg = await client.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 500,
+    messages: [
+      {
+        role: "user",
+        content: `Analyze these expenses and give 3-4 short insights. Be specific with numbers. One sentence each.\n\n${summary}`,
+      },
+    ],
+  });
+  res.json({ insights: msg.content[0].text });
 });
 
 app.listen(process.env.PORT || 3001, () =>
