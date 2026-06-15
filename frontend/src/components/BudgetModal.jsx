@@ -12,10 +12,14 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    document.body.style.overflow = "hidden";
     axios
       .get(`${API}/category-budgets`)
       .then((res) => setCatBudgets(res.data.budgets || {}))
       .catch(() => {});
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, []);
 
   const save = async () => {
@@ -38,10 +42,32 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
 
   return (
     <div
-      style={m.overlay}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(0,0,0,0.85)",
+        backdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div style={{ ...m.sheet, padding: "0 0 32px" }}>
+      <div
+        style={{
+          background: "#0A0A0A",
+          borderRadius: "20px 20px 0 0",
+          width: "100%",
+          maxWidth: 480,
+          border: "1px solid #1A1A1A",
+          borderBottom: "none",
+          animation: "slideUp 0.25s ease",
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: "85vh",
+        }}
+      >
         <div style={m.handle} />
         <div style={m.sheetHeader}>
           <button onClick={onClose} style={m.backBtn}>
@@ -65,9 +91,8 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
           </button>
         </div>
 
-        <div
-          style={{ padding: "0 20px", overflowY: "auto", maxHeight: "75vh" }}
-        >
+        {/* Scrollable content inside modal only */}
+        <div style={{ overflowY: "auto", flex: 1, padding: "0 20px 40px" }}>
           {/* Overall budget */}
           <div
             style={{
@@ -133,7 +158,7 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
                       gap: 12,
                       background: "#111",
                       borderRadius: 10,
-                      padding: "10px 14px",
+                      padding: "12px 14px",
                       border: "1px solid #1A1A1A",
                     }}
                   >
