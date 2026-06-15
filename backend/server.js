@@ -198,6 +198,34 @@ app.patch("/expenses/:id", upload.single("photo"), async (req, res) => {
   }
 });
 
+// Get category budgets
+app.get("/category-budgets", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT value FROM settings WHERE key = 'category_budgets'",
+    );
+    const raw = result.rows[0]?.value;
+    res.json({ budgets: raw ? JSON.parse(raw) : {} });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Save category budgets
+app.put("/category-budgets", async (req, res) => {
+  try {
+    const { budgets } = req.body;
+    await pool.query(
+      `INSERT INTO settings (key, value) VALUES ('category_budgets', $1)
+       ON CONFLICT (key) DO UPDATE SET value = $1`,
+      [JSON.stringify(budgets)],
+    );
+    res.json({ budgets });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 3001, () =>
   console.log(`Snapspend API on port ${process.env.PORT || 3001}`),
 );
