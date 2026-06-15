@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { modalStyles as m } from "../styles/modal";
 import { CATEGORIES } from "../constants";
@@ -10,6 +10,11 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
   const [overall, setOverall] = useState(String(current));
   const [catBudgets, setCatBudgets] = useState({});
   const [saving, setSaving] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const touchStart = useRef(null);
+  const didDrag = useRef(false);
+  const contentRef = useRef(null);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -40,6 +45,35 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
     setCatBudgets((prev) => ({ ...prev, [cat]: val }));
   };
 
+  const onHandleTouchStart = (ev) => {
+    touchStart.current = { y: ev.touches[0].clientY };
+    didDrag.current = false;
+    setDragging(false);
+    setDragY(0);
+  };
+
+  const onHandleTouchMove = (ev) => {
+    if (!touchStart.current) return;
+    const dy = ev.touches[0].clientY - touchStart.current.y;
+    if (dy > 0) {
+      ev.preventDefault();
+      didDrag.current = true;
+      setDragging(true);
+      setDragY(dy);
+    }
+  };
+
+  const onHandleTouchEnd = () => {
+    if (didDrag.current && dragY > 100) {
+      onClose();
+    } else {
+      setDragY(0);
+      setDragging(false);
+    }
+    touchStart.current = null;
+    didDrag.current = false;
+  };
+
   return (
     <div
       style={{
@@ -51,6 +85,7 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "center",
+        touchAction: "none",
       }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
@@ -62,13 +97,24 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
           maxWidth: 480,
           border: "1px solid #1A1A1A",
           borderBottom: "none",
-          animation: "slideUp 0.25s ease",
+          animation: dragging ? "none" : "slideUp 0.25s ease",
           display: "flex",
           flexDirection: "column",
           maxHeight: "85vh",
+          transform: `translateY(${dragY}px)`,
+          transition: dragging ? "none" : "transform 0.3s ease",
         }}
       >
-        <div style={m.handle} />
+        {/* Draggable handle */}
+        <div
+          style={{ padding: "12px 0 0", cursor: "grab" }}
+          onTouchStart={onHandleTouchStart}
+          onTouchMove={onHandleTouchMove}
+          onTouchEnd={onHandleTouchEnd}
+        >
+          <div style={m.handle} />
+        </div>
+
         <div style={m.sheetHeader}>
           <button onClick={onClose} style={m.backBtn}>
             Cancel
@@ -91,8 +137,17 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
           </button>
         </div>
 
-        {/* Scrollable content inside modal only */}
-        <div style={{ overflowY: "auto", flex: 1, padding: "0 20px 40px" }}>
+        {/* Scrollable content — touch-action scroll only vertically */}
+        <div
+          ref={contentRef}
+          style={{
+            overflowY: "auto",
+            flex: 1,
+            padding: "0 20px 40px",
+            touchAction: "pan-y",
+            overscrollBehavior: "contain",
+          }}
+        >
           {/* Overall budget */}
           <div
             style={{
