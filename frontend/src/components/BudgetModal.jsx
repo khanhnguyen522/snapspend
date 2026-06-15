@@ -50,6 +50,7 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
         flexDirection: "column",
         animation: "slideUp 0.25s ease",
         fontFamily: "Inter, sans-serif",
+        touchAction: "none",
       }}
     >
       <style>{`@keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: none; } }`}</style>
@@ -63,6 +64,7 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
           padding: "52px 20px 16px",
           borderBottom: "1px solid #111",
           flexShrink: 0,
+          touchAction: "none",
         }}
       >
         <button
@@ -99,7 +101,15 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
       </div>
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 48px" }}>
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "24px 20px 48px",
+          touchAction: "pan-y",
+          overscrollBehavior: "contain",
+        }}
+      >
         {/* Overall budget */}
         <div
           style={{
@@ -228,7 +238,7 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
           </div>
         </div>
 
-        {/* Save button at bottom */}
+        {/* Save button */}
         <button
           onClick={save}
           disabled={saving}
