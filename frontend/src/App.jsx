@@ -53,6 +53,16 @@ export default function App() {
     }
   }, [month]);
 
+  // Lock body scroll when any overlay is open
+  useEffect(() => {
+    const anyOpen =
+      showAdd || showBudget || showStats || showSearch || !!daySheet;
+    document.body.style.overflow = anyOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showAdd, showBudget, showStats, showSearch, daySheet]);
+
   const fetchAll = async () => {
     try {
       const [expRes, budRes, catBudRes] = await Promise.all([

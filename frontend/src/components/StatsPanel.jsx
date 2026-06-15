@@ -29,7 +29,9 @@ function CategoryBreakdown({ expenses, total, catBudgets }) {
       {sorted.map(([cat, amount]) => {
         const config = getCat(cat);
         const pct = total > 0 ? (amount / total) * 100 : 0;
-        const budget = catBudgets[cat] ? parseFloat(catBudgets[cat]) : null;
+        const budgetRaw = catBudgets[cat];
+        const budget =
+          budgetRaw && budgetRaw !== "" ? parseFloat(budgetRaw) : null;
         const budgetPct = budget
           ? Math.min((amount / budget) * 100, 100)
           : null;
@@ -81,12 +83,11 @@ function CategoryBreakdown({ expenses, total, catBudgets }) {
                 >
                   {fmt(amount)}
                 </span>
-                {budget && (
+                {budget ? (
                   <span style={{ fontSize: 11, color: "#444", marginLeft: 4 }}>
                     / {fmt(budget)}
                   </span>
-                )}
-                {!budget && (
+                ) : (
                   <span style={{ fontSize: 11, color: "#444", marginLeft: 6 }}>
                     {Math.round(pct)}%
                   </span>
@@ -94,50 +95,28 @@ function CategoryBreakdown({ expenses, total, catBudgets }) {
               </div>
             </div>
 
-            {/* Budget bar if limit set, otherwise spending share bar */}
-            {budget ? (
+            <div
+              style={{
+                height: 4,
+                background: "#111",
+                borderRadius: 2,
+                overflow: "hidden",
+              }}
+            >
               <div
                 style={{
-                  height: 4,
-                  background: "#111",
+                  height: "100%",
                   borderRadius: 2,
-                  overflow: "hidden",
+                  width: `${budget ? budgetPct : pct}%`,
+                  background: over
+                    ? "#EF4444"
+                    : budget && budgetPct > 80
+                      ? "#FBBF24"
+                      : config.color,
+                  transition: "width 0.5s ease",
                 }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    borderRadius: 2,
-                    width: `${budgetPct}%`,
-                    background: over
-                      ? "#EF4444"
-                      : budgetPct > 80
-                        ? "#FBBF24"
-                        : config.color,
-                    transition: "width 0.5s ease",
-                  }}
-                />
-              </div>
-            ) : (
-              <div
-                style={{
-                  height: 4,
-                  background: "#111",
-                  borderRadius: 2,
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    borderRadius: 2,
-                    width: `${pct}%`,
-                    background: config.color,
-                    transition: "width 0.5s ease",
-                  }}
-                />
-              </div>
-            )}
+              />
+            </div>
           </div>
         );
       })}
@@ -175,7 +154,6 @@ export default function StatsPanel({
     >
       <style>{`@keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: none; } }`}</style>
 
-      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -203,9 +181,7 @@ export default function StatsPanel({
         </button>
       </div>
 
-      {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 40px" }}>
-        {/* Category breakdown */}
         <div style={{ marginBottom: 28 }}>
           <p
             style={{
@@ -226,7 +202,6 @@ export default function StatsPanel({
           />
         </div>
 
-        {/* AI Insights */}
         <div style={{ borderTop: "1px solid #111", paddingTop: 20 }}>
           <div
             style={{
