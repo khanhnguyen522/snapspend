@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { getCat, fmt } from "../utils";
 
-function CategoryBreakdown({ expenses, total }) {
+function CategoryBreakdown({ expenses, total, catBudgets }) {
   const byCategory = expenses.reduce((acc, e) => {
     const cat = e.category || "other";
     acc[cat] = (acc[cat] || 0) + parseFloat(e.amount);
@@ -25,10 +25,16 @@ function CategoryBreakdown({ expenses, total }) {
     );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {sorted.map(([cat, amount]) => {
         const config = getCat(cat);
         const pct = total > 0 ? (amount / total) * 100 : 0;
+        const budget = catBudgets[cat] ? parseFloat(catBudgets[cat]) : null;
+        const budgetPct = budget
+          ? Math.min((amount / budget) * 100, 100)
+          : null;
+        const over = budget && amount > budget;
+
         return (
           <div key={cat}>
             <div
@@ -50,34 +56,88 @@ function CategoryBreakdown({ expenses, total }) {
                 >
                   {cat}
                 </span>
+                {over && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: "#F87171",
+                      background: "#7F1D1D33",
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                      fontWeight: 600,
+                    }}
+                  >
+                    over
+                  </span>
+                )}
               </div>
               <div style={{ textAlign: "right" }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: over ? "#F87171" : "#fff",
+                  }}
+                >
                   {fmt(amount)}
                 </span>
-                <span style={{ fontSize: 11, color: "#444", marginLeft: 6 }}>
-                  {Math.round(pct)}%
-                </span>
+                {budget && (
+                  <span style={{ fontSize: 11, color: "#444", marginLeft: 4 }}>
+                    / {fmt(budget)}
+                  </span>
+                )}
+                {!budget && (
+                  <span style={{ fontSize: 11, color: "#444", marginLeft: 6 }}>
+                    {Math.round(pct)}%
+                  </span>
+                )}
               </div>
             </div>
-            <div
-              style={{
-                height: 4,
-                background: "#111",
-                borderRadius: 2,
-                overflow: "hidden",
-              }}
-            >
+
+            {/* Budget bar if limit set, otherwise spending share bar */}
+            {budget ? (
               <div
                 style={{
-                  height: "100%",
+                  height: 4,
+                  background: "#111",
                   borderRadius: 2,
-                  width: `${pct}%`,
-                  background: config.color,
-                  transition: "width 0.5s ease",
+                  overflow: "hidden",
                 }}
-              />
-            </div>
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    borderRadius: 2,
+                    width: `${budgetPct}%`,
+                    background: over
+                      ? "#EF4444"
+                      : budgetPct > 80
+                        ? "#FBBF24"
+                        : config.color,
+                    transition: "width 0.5s ease",
+                  }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  height: 4,
+                  background: "#111",
+                  borderRadius: 2,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    borderRadius: 2,
+                    width: `${pct}%`,
+                    background: config.color,
+                    transition: "width 0.5s ease",
+                  }}
+                />
+              </div>
+            )}
           </div>
         );
       })}
@@ -88,12 +148,12 @@ function CategoryBreakdown({ expenses, total }) {
 export default function StatsPanel({
   expenses,
   total,
+  catBudgets,
   insights,
   loadingInsights,
   onRefresh,
   onClose,
 }) {
-  // Lock background scroll
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -159,10 +219,14 @@ export default function StatsPanel({
           >
             Spending by category
           </p>
-          <CategoryBreakdown expenses={expenses} total={total} />
+          <CategoryBreakdown
+            expenses={expenses}
+            total={total}
+            catBudgets={catBudgets || {}}
+          />
         </div>
 
-        {/* AI Insights — only show when analyzed */}
+        {/* AI Insights */}
         <div style={{ borderTop: "1px solid #111", paddingTop: 20 }}>
           <div
             style={{

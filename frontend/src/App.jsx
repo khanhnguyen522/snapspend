@@ -20,6 +20,7 @@ const NOW_YEAR = new Date().getFullYear();
 export default function App() {
   const [expenses, setExpenses] = useState([]);
   const [budget, setBudget] = useState(500);
+  const [catBudgets, setCatBudgets] = useState({});
   const [month, setMonth] = useState(NOW_MONTH);
   const [year, setYear] = useState(NOW_YEAR);
   const [showAdd, setShowAdd] = useState(false);
@@ -54,12 +55,14 @@ export default function App() {
 
   const fetchAll = async () => {
     try {
-      const [expRes, budRes] = await Promise.all([
+      const [expRes, budRes, catBudRes] = await Promise.all([
         axios.get(`${API}/expenses`),
         axios.get(`${API}/budget`),
+        axios.get(`${API}/category-budgets`),
       ]);
       setExpenses(expRes.data);
       setBudget(parseFloat(budRes.data.budget));
+      setCatBudgets(catBudRes.data.budgets || {});
     } catch {}
   };
 
@@ -95,7 +98,7 @@ export default function App() {
     setLoadingInsights(false);
   };
 
-  const handleSelectDay = (day, month, year, expense) => {
+  const handleSelectDay = (day, month, year) => {
     setMonth(month);
     setYear(year);
     const dayExpenses = expenses.filter((e) => {
@@ -465,6 +468,7 @@ export default function App() {
         <StatsPanel
           expenses={monthExpenses}
           total={totalSpent}
+          catBudgets={catBudgets}
           insights={insights}
           loadingInsights={loadingInsights}
           onRefresh={getInsights}
