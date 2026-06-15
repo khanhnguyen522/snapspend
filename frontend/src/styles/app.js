@@ -41,6 +41,8 @@ export const appStyles = {
     overflowX: "auto",
     marginBottom: 20,
     padding: "2px 0",
+    overscrollBehavior: "contain",
+    WebkitOverflowScrolling: "touch",
   },
   monthItem: {
     display: "flex",

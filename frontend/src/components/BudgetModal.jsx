@@ -86,6 +86,7 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
         alignItems: "flex-end",
         justifyContent: "center",
         touchAction: "none",
+        overscrollBehavior: "contain",
       }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
@@ -137,7 +138,7 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
           </button>
         </div>
 
-        {/* Scrollable content — touch-action scroll only vertically */}
+        {/* Scrollable content */}
         <div
           ref={contentRef}
           style={{
@@ -147,6 +148,8 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
             touchAction: "pan-y",
             overscrollBehavior: "contain",
           }}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
         >
           {/* Overall budget */}
           <div
