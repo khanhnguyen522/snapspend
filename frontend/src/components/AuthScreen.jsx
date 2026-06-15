@@ -35,7 +35,8 @@ export default function AuthScreen({ onLogin }) {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        position: "fixed",
+        inset: 0,
         background: "#000",
         display: "flex",
         flexDirection: "column",
@@ -43,9 +44,15 @@ export default function AuthScreen({ onLogin }) {
         justifyContent: "center",
         padding: "0 24px",
         fontFamily: "Inter, sans-serif",
+        touchAction: "none",
+        overscrollBehavior: "none",
       }}
     >
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');`}</style>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { background: #000 !important; overflow: hidden; height: 100%; }
+      `}</style>
 
       {/* Logo */}
       <div style={{ marginBottom: 48, textAlign: "center" }}>
@@ -171,4 +178,5 @@ const inputStyle = {
   outline: "none",
   fontFamily: "Inter, sans-serif",
   boxSizing: "border-box",
+  display: "block",
 };
