@@ -18,6 +18,10 @@ const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const NOW_MONTH = new Date().getMonth();
 const NOW_YEAR = new Date().getFullYear();
 
+// Set token immediately on module load
+const token = localStorage.getItem("token");
+if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
 export default function App() {
   const [user, setUser] = useState(() => {
     const u = localStorage.getItem("user");
@@ -40,20 +44,8 @@ export default function App() {
   const [galleryFile, setGalleryFile] = useState(null);
   const monthStripRef = useRef();
 
-  // Set axios auth header from stored token
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token)
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      const token = localStorage.getItem("token");
-      if (token)
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      fetchAll();
-    }
+    if (user) fetchAll();
   }, []);
 
   useEffect(() => {
@@ -93,12 +85,10 @@ export default function App() {
   };
 
   const handleLogin = (u) => {
+    const t = localStorage.getItem("token");
+    if (t) axios.defaults.headers.common["Authorization"] = `Bearer ${t}`;
     setUser(u);
-    const token = localStorage.getItem("token");
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      fetchAll();
-    }
+    fetchAll();
   };
 
   const logout = () => {
@@ -154,7 +144,6 @@ export default function App() {
     setDaySheet({ day, expenses: dayExpenses });
   };
 
-  // Auth guard
   if (!user) return <AuthScreen onLogin={handleLogin} />;
 
   const firstDay = new Date(year, month, 1).getDay();
