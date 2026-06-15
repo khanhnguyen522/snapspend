@@ -148,6 +148,56 @@ app.get("/insights", async (req, res) => {
   res.json({ insights: msg.content[0].text });
 });
 
+// Edit expense
+app.patch("/expenses/:id", upload.single("photo"), async (req, res) => {
+  try {
+    const { store_name, amount, category, date, note, paid_by } = req.body;
+    const photo_url = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    if (store_name !== undefined) {
+      fields.push(`store_name=$${idx++}`);
+      values.push(store_name);
+    }
+    if (amount !== undefined) {
+      fields.push(`amount=$${idx++}`);
+      values.push(parseFloat(amount));
+    }
+    if (category !== undefined) {
+      fields.push(`category=$${idx++}`);
+      values.push(category);
+    }
+    if (date !== undefined) {
+      fields.push(`date=$${idx++}`);
+      values.push(date);
+    }
+    if (note !== undefined) {
+      fields.push(`note=$${idx++}`);
+      values.push(note);
+    }
+    if (paid_by !== undefined) {
+      fields.push(`paid_by=$${idx++}`);
+      values.push(paid_by || null);
+    }
+    if (photo_url !== undefined) {
+      fields.push(`photo_url=$${idx++}`);
+      values.push(photo_url);
+    }
+
+    values.push(req.params.id);
+    const result = await pool.query(
+      `UPDATE expenses SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`,
+      values,
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 3001, () =>
   console.log(`Snapspend API on port ${process.env.PORT || 3001}`),
 );
