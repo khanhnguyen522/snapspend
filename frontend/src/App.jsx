@@ -18,7 +18,6 @@ const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const NOW_MONTH = new Date().getMonth();
 const NOW_YEAR = new Date().getFullYear();
 
-// Set token immediately on module load
 const token = localStorage.getItem("token");
 if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
@@ -36,6 +35,7 @@ export default function App() {
   const [showBudget, setShowBudget] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [daySheet, setDaySheet] = useState(null);
   const [toast, setToast] = useState(null);
   const [insights, setInsights] = useState("");
@@ -233,21 +233,106 @@ export default function App() {
               </svg>
             </button>
             <span style={{ fontSize: 13, color: "#555" }}>{year}</span>
-            <button
-              onClick={logout}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-              }}
-            >
-              <div style={s.avatar}>
-                <div style={s.avatarInner}>
-                  {user?.name?.[0]?.toUpperCase() || "S"}
+
+            {/* Avatar + profile menu */}
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              >
+                <div style={s.avatar}>
+                  <div style={s.avatarInner}>
+                    {user?.name?.[0]?.toUpperCase() || "S"}
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+              {showProfileMenu && (
+                <>
+                  {/* Backdrop */}
+                  <div
+                    style={{ position: "fixed", inset: 0, zIndex: 199 }}
+                    onClick={() => setShowProfileMenu(false)}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 40,
+                      right: 0,
+                      zIndex: 200,
+                      background: "#111",
+                      border: "1px solid #1A1A1A",
+                      borderRadius: 12,
+                      padding: 8,
+                      minWidth: 170,
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "8px 12px 10px",
+                        borderBottom: "1px solid #1A1A1A",
+                        marginBottom: 6,
+                      }}
+                    >
+                      <div
+                        style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}
+                      >
+                        {user.name}
+                      </div>
+                      <div
+                        style={{ fontSize: 11, color: "#444", marginTop: 2 }}
+                      >
+                        {user.email}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        setShowBudget(true);
+                      }}
+                      style={{
+                        width: "100%",
+                        background: "none",
+                        border: "none",
+                        color: "#ccc",
+                        fontSize: 13,
+                        padding: "10px 12px",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        borderRadius: 8,
+                        fontFamily: "Inter, sans-serif",
+                      }}
+                    >
+                      Budget settings
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        logout();
+                      }}
+                      style={{
+                        width: "100%",
+                        background: "none",
+                        border: "none",
+                        color: "#F87171",
+                        fontSize: 13,
+                        padding: "10px 12px",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        borderRadius: 8,
+                        fontFamily: "Inter, sans-serif",
+                      }}
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
