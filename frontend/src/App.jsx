@@ -10,6 +10,7 @@ import DayCell from "./components/DayCell";
 import DaySheet from "./components/DaySheet";
 import StatsPanel from "./components/StatsPanel";
 import SearchModal from "./components/SearchModal";
+import AuthScreen from "./components/AuthScreen";
 import Toast from "./components/Toast";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -18,6 +19,10 @@ const NOW_MONTH = new Date().getMonth();
 const NOW_YEAR = new Date().getFullYear();
 
 export default function App() {
+  const [user, setUser] = useState(() => {
+    const u = localStorage.getItem("user");
+    return u ? JSON.parse(u) : null;
+  });
   const [expenses, setExpenses] = useState([]);
   const [budget, setBudget] = useState(500);
   const [catBudgets, setCatBudgets] = useState({});
@@ -35,9 +40,16 @@ export default function App() {
   const [galleryFile, setGalleryFile] = useState(null);
   const monthStripRef = useRef();
 
+  // Set axios auth header from stored token
   useEffect(() => {
-    fetchAll();
-  }, []);
+    const token = localStorage.getItem("token");
+    if (token)
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }, [user]);
+
+  useEffect(() => {
+    if (user) fetchAll();
+  }, [user]);
 
   useEffect(() => {
     if (monthStripRef.current) {
@@ -53,7 +65,6 @@ export default function App() {
     }
   }, [month]);
 
-  // Lock body scroll when any overlay is open
   useEffect(() => {
     const anyOpen =
       showAdd || showBudget || showStats || showSearch || !!daySheet;
@@ -74,6 +85,23 @@ export default function App() {
       setBudget(parseFloat(budRes.data.budget));
       setCatBudgets(catBudRes.data.budgets || {});
     } catch {}
+  };
+
+  const handleLogin = (u) => {
+    setUser(u);
+    const token = localStorage.getItem("token");
+    if (token)
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    delete axios.defaults.headers.common["Authorization"];
+    setUser(null);
+    setExpenses([]);
+    setBudget(500);
+    setCatBudgets({});
   };
 
   const settle = async (id) => {
@@ -118,6 +146,9 @@ export default function App() {
     });
     setDaySheet({ day, expenses: dayExpenses });
   };
+
+  // Auth guard
+  if (!user) return <AuthScreen onLogin={handleLogin} />;
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -207,7 +238,7 @@ export default function App() {
             </button>
             <span style={{ fontSize: 13, color: "#555" }}>{year}</span>
             <button
-              onClick={() => setShowBudget(true)}
+              onClick={logout}
               style={{
                 background: "none",
                 border: "none",
@@ -216,7 +247,9 @@ export default function App() {
               }}
             >
               <div style={s.avatar}>
-                <div style={s.avatarInner}>S</div>
+                <div style={s.avatarInner}>
+                  {user?.name?.[0]?.toUpperCase() || "S"}
+                </div>
               </div>
             </button>
           </div>
