@@ -451,6 +451,7 @@ export default function App() {
           onClose={() => setDaySheet(null)}
           onSettle={settle}
           onDelete={deleteExp}
+          onSaved={fetchAll}
           setToast={setToast}
         />
       )}
