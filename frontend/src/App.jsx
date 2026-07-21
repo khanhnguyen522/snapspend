@@ -172,9 +172,7 @@ export default function App() {
   );
   const budgetPct = Math.min((totalSpent / budget) * 100, 100);
   const over = totalSpent > budget;
-  const debts = expenses.filter((e) => e.paid_by && !e.is_settled);
-  const totalOwed = debts.reduce((s, e) => s + parseFloat(e.amount), 0);
-
+  const totalOwed = 0;
   const getMonthRingStyle = (i) => {
     const isActive = i === month;
     const hasExp = expenses.some((e) => {
@@ -388,21 +386,6 @@ export default function App() {
           })}
         </div>
 
-        {/* Debt banner */}
-        {debts.length > 0 && (
-          <div style={s.debtBanner}>
-            <span style={{ fontSize: 14 }}>🤝</span>
-            <div style={{ flex: 1 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#FCD34D" }}>
-                You owe {fmt(totalOwed)}
-              </span>
-              <span style={{ fontSize: 12, color: "#92400E", marginLeft: 6 }}>
-                across {debts.length} expense{debts.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* Calendar */}
         <div style={cal.grid}>
           {DAYS.map((d) => (
@@ -437,17 +420,7 @@ export default function App() {
             </span>
             <span style={s.statLbl}>spent</span>
           </div>
-          <div style={s.stat}>
-            <span
-              style={{
-                ...s.statVal,
-                color: totalOwed > 0 ? "#EC4899" : "#fff",
-              }}
-            >
-              {fmt(totalOwed)}
-            </span>
-            <span style={s.statLbl}>owed</span>
-          </div>
+
           <div style={s.stat}>
             <span
               style={{

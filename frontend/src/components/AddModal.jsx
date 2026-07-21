@@ -33,21 +33,17 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
   const [preview, setPreview] = useState(
     initialFile ? URL.createObjectURL(initialFile) : null,
   );
-  const [scanning, setScanning] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [form, setForm] = useState({
     amount: "",
     store_name: "",
-    category: "food",
+    category: "other",
     note: "",
     date: today(),
-    paidByFriend: false,
-    paid_by: "",
   });
   const cameraRef = useRef();
 
-  // Called from parent with a file (camera or gallery)
   const handleFile = (file) => {
     if (!file) {
       onClose();
@@ -59,7 +55,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
   };
 
   const handleReceipt = async () => {
-    setScanning(true);
     setStep("scanning");
     const fd = new FormData();
     fd.append("photo", photo);
@@ -76,7 +71,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
     } catch {
       setError("Could not read receipt. Fill in manually.");
     }
-    setScanning(false);
     setStep("form");
   };
 
@@ -85,10 +79,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
   const save = async () => {
     if (!form.amount || isNaN(parseFloat(form.amount))) {
       setError("Enter an amount.");
-      return;
-    }
-    if (form.paidByFriend && !form.paid_by.trim()) {
-      setError("Enter your friend's name.");
       return;
     }
     setSaving(true);
@@ -101,8 +91,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
       fd.append("category", form.category);
       fd.append("note", form.note);
       fd.append("date", form.date);
-      if (form.paidByFriend && form.paid_by.trim())
-        fd.append("paid_by", form.paid_by.trim());
       await axios.post(`${API}/expenses/manual`, fd);
       setToast("Expense saved");
       onSaved();
@@ -113,7 +101,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
     setSaving(false);
   };
 
-  // ── Initial — open camera immediately ─────────────────────────────────────
   if (step === "preview")
     return (
       <div
@@ -128,8 +115,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
           style={{ display: "none" }}
           onChange={(e) => handleFile(e.target.files[0])}
         />
-        {/* Auto-trigger camera on mount */}
-        <style>{`.auto-trigger { animation: none; }`}</style>
         <AutoTrigger
           onMount={() => cameraRef.current?.click()}
           onClose={onClose}
@@ -137,7 +122,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
       </div>
     );
 
-  // ── Deciding — fullscreen photo with two choices ───────────────────────────
   if (step === "deciding")
     return (
       <div
@@ -150,7 +134,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
           flexDirection: "column",
         }}
       >
-        {/* Full photo */}
         <div style={{ flex: 1, position: "relative" }}>
           <img
             src={preview}
@@ -162,7 +145,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               display: "block",
             }}
           />
-          {/* Top gradient */}
           <div
             style={{
               position: "absolute",
@@ -192,7 +174,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               ✕
             </button>
           </div>
-          {/* Bottom gradient + choices */}
           <div
             style={{
               position: "absolute",
@@ -281,7 +262,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
       </div>
     );
 
-  // ── Scanning ───────────────────────────────────────────────────────────────
   if (step === "scanning")
     return (
       <div
@@ -328,7 +308,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
       </div>
     );
 
-  // ── Form ───────────────────────────────────────────────────────────────────
   return (
     <div
       style={m.overlay}
@@ -343,7 +322,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
           <span style={m.sheetTitle2}>Details</span>
           <div style={{ width: 60 }} />
         </div>
-
         <div
           style={{
             padding: "0 20px 32px",
@@ -366,7 +344,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               />
             </div>
           )}
-
           <div style={m.amountRow}>
             <span style={m.dollarSign}>$</span>
             <input
@@ -378,7 +355,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               style={m.amountInput}
             />
           </div>
-
           <Field label="Where">
             <input
               type="text"
@@ -388,7 +364,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               style={m.input}
             />
           </Field>
-
           <div
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
           >
@@ -414,7 +389,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               />
             </Field>
           </div>
-
           <Field label="Note (optional)">
             <input
               type="text"
@@ -424,57 +398,7 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               style={m.input}
             />
           </Field>
-
-          <div
-            style={{
-              ...m.friendBox,
-              ...(form.paidByFriend ? m.friendBoxOn : {}),
-            }}
-            onClick={() =>
-              setForm({ ...form, paidByFriend: !form.paidByFriend })
-            }
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 20 }}>🤝</span>
-              <div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: form.paidByFriend ? "#F97316" : "#888",
-                  }}
-                >
-                  A friend paid for me
-                </div>
-                <div style={{ fontSize: 11, color: "#333", marginTop: 1 }}>
-                  I'll pay them back later
-                </div>
-              </div>
-            </div>
-            <div
-              style={{ ...m.toggle, ...(form.paidByFriend ? m.toggleOn : {}) }}
-            >
-              <div
-                style={{ ...m.thumb, ...(form.paidByFriend ? m.thumbOn : {}) }}
-              />
-            </div>
-          </div>
-
-          {form.paidByFriend && (
-            <Field label="Friend's name">
-              <input
-                type="text"
-                placeholder="Who paid for you?"
-                autoFocus
-                value={form.paid_by}
-                onChange={(e) => setForm({ ...form, paid_by: e.target.value })}
-                style={{ ...m.input, borderColor: "#F97316" }}
-              />
-            </Field>
-          )}
-
           {error && <div style={m.error}>{error}</div>}
-
           <button onClick={save} disabled={saving} style={m.saveBtn}>
             {saving ? "Saving..." : "Save expense"}
           </button>
@@ -484,7 +408,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
   );
 }
 
-// Auto-triggers camera on mount, shows cancel if dismissed
 function AutoTrigger({ onMount, onClose }) {
   const ref = useRef(false);
   if (!ref.current) {

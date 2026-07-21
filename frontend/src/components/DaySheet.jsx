@@ -35,7 +35,7 @@ export default function DaySheet({
 
   const e = expenses[index] || expenses[0];
   const cat = getCat(e?.category || "other");
-  const isDebt = e.paid_by && !e.is_settled;
+  const isDebt = false;
   const total = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
 
   const goNext = () => {
@@ -448,12 +448,10 @@ export default function DaySheet({
                     onTouchEnd={(ev) => {
                       ev.stopPropagation();
                       ev.preventDefault();
-                      onSettle(e.id);
+
                       setToast("Marked as settled");
                     }}
                     onClick={(ev) => {
-                      ev.stopPropagation();
-                      onSettle(e.id);
                       setToast("Marked as settled");
                     }}
                     style={{

@@ -36,8 +36,6 @@ export default function EditModal({ expense, onClose, onSaved, setToast }) {
     category: expense.category || "other",
     note: expense.note || "",
     date: expense.date ? expense.date.split("T")[0] : "",
-    paid_by: expense.paid_by || "",
-    paidByFriend: !!expense.paid_by && !expense.is_settled,
   });
 
   const save = async () => {
@@ -54,7 +52,6 @@ export default function EditModal({ expense, onClose, onSaved, setToast }) {
       fd.append("category", form.category);
       fd.append("note", form.note);
       fd.append("date", form.date);
-      fd.append("paid_by", form.paidByFriend ? form.paid_by : "");
       await axios.patch(`${API}/expenses/${expense.id}`, fd);
       setToast("Expense updated");
       onSaved();
@@ -93,7 +90,6 @@ export default function EditModal({ expense, onClose, onSaved, setToast }) {
             {saving ? "Saving..." : "Save"}
           </button>
         </div>
-
         <div
           style={{
             padding: "16px 20px 40px",
@@ -111,7 +107,6 @@ export default function EditModal({ expense, onClose, onSaved, setToast }) {
               style={m.amountInput}
             />
           </div>
-
           <Field label="Where">
             <input
               type="text"
@@ -121,7 +116,6 @@ export default function EditModal({ expense, onClose, onSaved, setToast }) {
               style={m.input}
             />
           </Field>
-
           <div
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
           >
@@ -147,7 +141,6 @@ export default function EditModal({ expense, onClose, onSaved, setToast }) {
               />
             </Field>
           </div>
-
           <Field label="Note (optional)">
             <input
               type="text"
@@ -157,54 +150,6 @@ export default function EditModal({ expense, onClose, onSaved, setToast }) {
               style={m.input}
             />
           </Field>
-
-          <div
-            style={{
-              ...m.friendBox,
-              ...(form.paidByFriend ? m.friendBoxOn : {}),
-            }}
-            onClick={() =>
-              setForm({ ...form, paidByFriend: !form.paidByFriend })
-            }
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 20 }}>🤝</span>
-              <div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: form.paidByFriend ? "#F97316" : "#888",
-                  }}
-                >
-                  A friend paid for me
-                </div>
-                <div style={{ fontSize: 11, color: "#333", marginTop: 1 }}>
-                  I'll pay them back later
-                </div>
-              </div>
-            </div>
-            <div
-              style={{ ...m.toggle, ...(form.paidByFriend ? m.toggleOn : {}) }}
-            >
-              <div
-                style={{ ...m.thumb, ...(form.paidByFriend ? m.thumbOn : {}) }}
-              />
-            </div>
-          </div>
-
-          {form.paidByFriend && (
-            <Field label="Friend's name">
-              <input
-                type="text"
-                placeholder="Who paid for you?"
-                value={form.paid_by}
-                onChange={(e) => setForm({ ...form, paid_by: e.target.value })}
-                style={{ ...m.input, borderColor: "#F97316" }}
-              />
-            </Field>
-          )}
-
           {error && <div style={m.error}>{error}</div>}
         </div>
       </div>
