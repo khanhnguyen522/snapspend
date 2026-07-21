@@ -92,11 +92,15 @@ app.post("/auth/login", async (req, res) => {
 });
 
 app.get("/auth/me", auth, async (req, res) => {
-  const result = await pool.query(
-    "SELECT id, email, name FROM users WHERE id = $1",
-    [req.user.id],
-  );
-  res.json(result.rows[0]);
+  try {
+    const result = await pool.query(
+      "SELECT id, email, name FROM users WHERE id = $1",
+      [req.user.id],
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ── Expenses ───────────────────────────────────────────────────────────────────
@@ -117,8 +121,8 @@ app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
     const data = await readReceipt(req.file.path);
     const photo_url = `/uploads/${req.file.filename}`;
     const result = await pool.query(
-      `INSERT INTO expenses (store_name, amount, category, date, photo_url, entry_type, note, paid_by, user_id)
-       VALUES ($1, $2, $3, $4, $5, 'scan', $6, $7, $8) RETURNING *`,
+      `INSERT INTO expenses (store_name, amount, category, date, photo_url, entry_type, note, user_id)
+       VALUES ($1, $2, $3, $4, $5, 'scan', $6, $7) RETURNING *`,
       [
         data.store_name,
         data.amount,
@@ -126,7 +130,6 @@ app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
         data.date,
         photo_url,
         req.body.note || null,
-        req.body.paid_by || null,
         req.user.id,
       ],
     );
@@ -138,11 +141,11 @@ app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
 
 app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
   try {
-    const { store_name, amount, category, date, note, paid_by } = req.body;
+    const { store_name, amount, category, date, note } = req.body;
     const photo_url = req.file ? `/uploads/${req.file.filename}` : null;
     const result = await pool.query(
-      `INSERT INTO expenses (store_name, amount, category, date, photo_url, note, paid_by, entry_type, user_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'manual', $8) RETURNING *`,
+      `INSERT INTO expenses (store_name, amount, category, date, photo_url, note, entry_type, user_id)
+       VALUES ($1, $2, $3, $4, $5, $6, 'manual', $7) RETURNING *`,
       [
         store_name || "Manual entry",
         parseFloat(amount),
@@ -150,7 +153,6 @@ app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
         date || new Date().toISOString().split("T")[0],
         photo_url,
         note || null,
-        paid_by || null,
         req.user.id,
       ],
     );
@@ -160,21 +162,9 @@ app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
   }
 });
 
-app.patch("/expenses/:id/settle", auth, async (req, res) => {
-  try {
-    const result = await pool.query(
-      "UPDATE expenses SET is_settled = true WHERE id = $1 AND user_id = $2 RETURNING *",
-      [req.params.id, req.user.id],
-    );
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.patch("/expenses/:id", auth, upload.single("photo"), async (req, res) => {
   try {
-    const { store_name, amount, category, date, note, paid_by } = req.body;
+    const { store_name, amount, category, date, note } = req.body;
     const photo_url = req.file ? `/uploads/${req.file.filename}` : undefined;
     const fields = [];
     const values = [];
@@ -198,10 +188,6 @@ app.patch("/expenses/:id", auth, upload.single("photo"), async (req, res) => {
     if (note !== undefined) {
       fields.push(`note=$${idx++}`);
       values.push(note);
-    }
-    if (paid_by !== undefined) {
-      fields.push(`paid_by=$${idx++}`);
-      values.push(paid_by || null);
     }
     if (photo_url !== undefined) {
       fields.push(`photo_url=$${idx++}`);
