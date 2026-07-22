@@ -1,6 +1,6 @@
 export const appStyles = {
   root: { minHeight: "100vh", background: "#000", paddingBottom: 90 },
-  container: { maxWidth: 480, margin: "0 auto", padding: "16px 16px 0" },
+  container: { maxWidth: 480, margin: "0 auto", padding: "44px 16px 0" },
   header: {
     display: "flex",
     justifyContent: "space-between",
@@ -142,7 +142,7 @@ export const appStyles = {
     justifyContent: "space-around",
     alignItems: "center",
     padding: "12px 24px 28px",
-    zIndex: 100,
+    zIndex: 200,
   },
   tabBtn: {
     display: "flex",

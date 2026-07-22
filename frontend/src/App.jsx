@@ -8,7 +8,7 @@ import AddModal from "./components/AddModal";
 import BudgetModal from "./components/BudgetModal";
 import DayCell from "./components/DayCell";
 import DaySheet from "./components/DaySheet";
-import StatsPanel from "./components/StatsPanel";
+import OverviewPage from "./components/OverviewPage";
 import SearchModal from "./components/SearchModal";
 import AuthScreen from "./components/AuthScreen";
 import Toast from "./components/Toast";
@@ -31,9 +31,9 @@ export default function App() {
   const [catBudgets, setCatBudgets] = useState({});
   const [month, setMonth] = useState(NOW_MONTH);
   const [year, setYear] = useState(NOW_YEAR);
+  const [activeTab, setActiveTab] = useState("calendar");
   const [showAdd, setShowAdd] = useState(false);
   const [showBudget, setShowBudget] = useState(false);
-  const [showStats, setShowStats] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [daySheet, setDaySheet] = useState(null);
@@ -63,13 +63,12 @@ export default function App() {
   }, [month]);
 
   useEffect(() => {
-    const anyOpen =
-      showAdd || showBudget || showStats || showSearch || !!daySheet;
+    const anyOpen = showAdd || showBudget || showSearch || !!daySheet;
     document.body.style.overflow = anyOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [showAdd, showBudget, showStats, showSearch, daySheet]);
+  }, [showAdd, showBudget, showSearch, daySheet]);
 
   const fetchAll = async () => {
     try {
@@ -99,19 +98,6 @@ export default function App() {
     setExpenses([]);
     setBudget(500);
     setCatBudgets({});
-  };
-
-  const settle = async (id) => {
-    await axios.patch(`${API}/expenses/${id}/settle`);
-    fetchAll();
-    if (daySheet) {
-      setDaySheet((prev) => ({
-        ...prev,
-        expenses: prev.expenses.map((e) =>
-          e.id === id ? { ...e, is_settled: true } : e,
-        ),
-      }));
-    }
   };
 
   const deleteExp = async (id) => {
@@ -144,6 +130,20 @@ export default function App() {
     setDaySheet({ day, expenses: dayExpenses });
   };
 
+  const handleOverviewMonthChange = (dir) => {
+    if (dir === 1) {
+      if (month === 11) {
+        setMonth(0);
+        setYear((y) => y + 1);
+      } else setMonth((m) => m + 1);
+    } else {
+      if (month === 0) {
+        setMonth(11);
+        setYear((y) => y - 1);
+      } else setMonth((m) => m - 1);
+    }
+  };
+
   if (!user) return <AuthScreen onLogin={handleLogin} />;
 
   const firstDay = new Date(year, month, 1).getDay();
@@ -172,7 +172,7 @@ export default function App() {
   );
   const budgetPct = Math.min((totalSpent / budget) * 100, 100);
   const over = totalSpent > budget;
-  const totalOwed = 0;
+
   const getMonthRingStyle = (i) => {
     const isActive = i === month;
     const hasExp = expenses.some((e) => {
@@ -202,346 +202,328 @@ export default function App() {
         .month-strip { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      <div style={s.container}>
-        {/* Header */}
-        <div style={s.header}>
-          <div>
-            <h1 style={s.logo}>snapspend</h1>
-            <p
-              style={{
-                fontSize: 13,
-                color: "#666",
-                marginTop: 3,
-                fontWeight: 500,
-              }}
-            >
-              Hi, {user?.name}
-            </p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button
-              onClick={() => setShowSearch(true)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: 4,
-              }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#444"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      {/* Calendar Tab */}
+      {activeTab === "calendar" && (
+        <div style={s.container}>
+          {/* Header */}
+          <div style={s.header}>
+            <div>
+              <h1 style={s.logo}>snapspend</h1>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#666",
+                  marginTop: 3,
+                  fontWeight: 500,
+                }}
               >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-            </button>
-            <span style={{ fontSize: 13, color: "#555" }}>{year}</span>
-
-            {/* Avatar + profile menu */}
-            <div style={{ position: "relative" }}>
+                Hi, {user?.name}
+              </p>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                onClick={() => setShowSearch(true)}
                 style={{
                   background: "none",
                   border: "none",
                   cursor: "pointer",
-                  padding: 0,
+                  padding: 4,
                 }}
               >
-                <div style={s.avatar}>
-                  <div style={s.avatarInner}>
-                    {user?.name?.[0]?.toUpperCase() || "S"}
-                  </div>
-                </div>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#444"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
               </button>
-              {showProfileMenu && (
-                <>
-                  {/* Backdrop */}
-                  <div
-                    style={{ position: "fixed", inset: 0, zIndex: 199 }}
-                    onClick={() => setShowProfileMenu(false)}
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 40,
-                      right: 0,
-                      zIndex: 200,
-                      background: "#111",
-                      border: "1px solid #1A1A1A",
-                      borderRadius: 12,
-                      padding: 8,
-                      minWidth: 170,
-                    }}
-                  >
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <button
+                  onClick={() => setYear((y) => y - 1)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#555",
+                    fontSize: 16,
+                    cursor: "pointer",
+                  }}
+                >
+                  ‹
+                </button>
+                <span style={{ fontSize: 13, color: "#555" }}>{year}</span>
+                <button
+                  onClick={() => setYear((y) => y + 1)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#555",
+                    fontSize: 16,
+                    cursor: "pointer",
+                  }}
+                >
+                  ›
+                </button>
+              </div>
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  <div style={s.avatar}>
+                    <div style={s.avatarInner}>
+                      {user?.name?.[0]?.toUpperCase() || "S"}
+                    </div>
+                  </div>
+                </button>
+                {showProfileMenu && (
+                  <>
+                    <div
+                      style={{ position: "fixed", inset: 0, zIndex: 199 }}
+                      onClick={() => setShowProfileMenu(false)}
+                    />
                     <div
                       style={{
-                        padding: "8px 12px 10px",
-                        borderBottom: "1px solid #1A1A1A",
-                        marginBottom: 6,
+                        position: "absolute",
+                        top: 40,
+                        right: 0,
+                        zIndex: 200,
+                        background: "#111",
+                        border: "1px solid #1A1A1A",
+                        borderRadius: 12,
+                        padding: 8,
+                        minWidth: 170,
                       }}
                     >
                       <div
-                        style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}
+                        style={{
+                          padding: "8px 12px 10px",
+                          borderBottom: "1px solid #1A1A1A",
+                          marginBottom: 6,
+                        }}
                       >
-                        {user.name}
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "#fff",
+                          }}
+                        >
+                          {user.name}
+                        </div>
+                        <div
+                          style={{ fontSize: 11, color: "#444", marginTop: 2 }}
+                        >
+                          {user.email}
+                        </div>
                       </div>
-                      <div
-                        style={{ fontSize: 11, color: "#444", marginTop: 2 }}
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          setShowBudget(true);
+                        }}
+                        style={{
+                          width: "100%",
+                          background: "none",
+                          border: "none",
+                          color: "#ccc",
+                          fontSize: 13,
+                          padding: "10px 12px",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          borderRadius: 8,
+                          fontFamily: "Inter, sans-serif",
+                        }}
                       >
-                        {user.email}
-                      </div>
+                        Budget settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          logout();
+                        }}
+                        style={{
+                          width: "100%",
+                          background: "none",
+                          border: "none",
+                          color: "#F87171",
+                          fontSize: 13,
+                          padding: "10px 12px",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          borderRadius: 8,
+                          fontFamily: "Inter, sans-serif",
+                        }}
+                      >
+                        Sign out
+                      </button>
                     </div>
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        setShowBudget(true);
-                      }}
-                      style={{
-                        width: "100%",
-                        background: "none",
-                        border: "none",
-                        color: "#ccc",
-                        fontSize: 13,
-                        padding: "10px 12px",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        borderRadius: 8,
-                        fontFamily: "Inter, sans-serif",
-                      }}
-                    >
-                      Budget settings
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        logout();
-                      }}
-                      style={{
-                        width: "100%",
-                        background: "none",
-                        border: "none",
-                        color: "#F87171",
-                        fontSize: 13,
-                        padding: "10px 12px",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        borderRadius: 8,
-                        fontFamily: "Inter, sans-serif",
-                      }}
-                    >
-                      Sign out
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Month strip */}
-        <div ref={monthStripRef} className="month-strip" style={s.monthStrip}>
-          {MONTHS.map((m, i) => {
-            const isActive = i === month;
-            const isToday = i === NOW_MONTH && year === NOW_YEAR;
-            const ringStyle = getMonthRingStyle(i);
-            return (
-              <div
-                key={m}
-                data-active={isActive}
-                style={s.monthItem}
-                onClick={() => setMonth(i)}
-              >
-                <div style={ringStyle}>
-                  <div
-                    style={
-                      isActive || ringStyle === s.monthRingHasExp
-                        ? s.monthInnerActive
-                        : s.monthInnerInactive
-                    }
-                  >
-                    {m.slice(0, 3)}
-                  </div>
-                </div>
-                {isToday && (
-                  <div
-                    style={{
-                      width: 4,
-                      height: 4,
-                      borderRadius: "50%",
-                      background: isActive ? "#F97316" : "#555",
-                      marginTop: 2,
-                    }}
-                  />
+                  </>
                 )}
               </div>
-            );
-          })}
-        </div>
-
-        {/* Calendar */}
-        <div style={cal.grid}>
-          {DAYS.map((d) => (
-            <div key={d} style={cal.dayLabel}>
-              {d}
             </div>
-          ))}
-          {cells.map((day, i) => (
-            <DayCell
-              key={i}
-              day={day}
-              expenses={day ? byDay[day] || [] : []}
-              onClick={(d, exps) => setDaySheet({ day: d, expenses: exps })}
-              isToday={
-                day === new Date().getDate() &&
-                month === NOW_MONTH &&
-                year === NOW_YEAR
-              }
-            />
-          ))}
-        </div>
-
-        {/* Stats row */}
-        <div style={s.statsRow}>
-          <div style={s.stat}>
-            <span style={s.statVal}>{monthExpenses.length}</span>
-            <span style={s.statLbl}>expenses</span>
-          </div>
-          <div style={s.stat}>
-            <span style={{ ...s.statVal, color: "#F97316" }}>
-              {fmt(totalSpent)}
-            </span>
-            <span style={s.statLbl}>spent</span>
           </div>
 
-          <div style={s.stat}>
-            <span
-              style={{
-                ...s.statVal,
-                color: over
-                  ? "#F87171"
-                  : budgetPct > 80
-                    ? "#FBBF24"
-                    : "#8B5CF6",
-              }}
-            >
-              {Math.round(budgetPct)}%
-            </span>
-            <span style={s.statLbl}>budget</span>
+          {/* Month strip */}
+          <div ref={monthStripRef} className="month-strip" style={s.monthStrip}>
+            {MONTHS.map((m, i) => {
+              const isActive = i === month;
+              const isToday = i === NOW_MONTH && year === NOW_YEAR;
+              const ringStyle = getMonthRingStyle(i);
+              return (
+                <div
+                  key={m}
+                  data-active={isActive}
+                  style={s.monthItem}
+                  onClick={() => setMonth(i)}
+                >
+                  <div style={ringStyle}>
+                    <div
+                      style={
+                        isActive || ringStyle === s.monthRingHasExp
+                          ? s.monthInnerActive
+                          : s.monthInnerInactive
+                      }
+                    >
+                      {m.slice(0, 3)}
+                    </div>
+                  </div>
+                  {isToday && (
+                    <div
+                      style={{
+                        width: 4,
+                        height: 4,
+                        borderRadius: "50%",
+                        background: isActive ? "#F97316" : "#555",
+                        marginTop: 2,
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
-        </div>
 
-        {/* Budget bar */}
-        <div style={{ padding: "10px 0 4px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 6,
-            }}
-          >
-            <span style={{ fontSize: 11, color: "#444" }}>
-              {over
-                ? `Over by ${fmt(totalSpent - budget)}`
-                : `${fmt(budget - totalSpent)} left`}
-            </span>
-            <span style={{ fontSize: 11, color: "#555" }}>
-              {fmt(totalSpent)}{" "}
-              <span style={{ color: "#222" }}>/ {fmt(budget)}</span>
-            </span>
-          </div>
-          <div
-            style={{
-              height: 4,
-              background: "#111",
-              borderRadius: 2,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                height: "100%",
-                borderRadius: 2,
-                width: `${budgetPct}%`,
-                background: over
-                  ? "#EF4444"
-                  : budgetPct > 80
-                    ? "#FBBF24"
-                    : "linear-gradient(90deg,#F97316,#EC4899)",
-                transition: "width 0.5s ease",
-              }}
-            />
+          {/* Calendar */}
+          <div style={cal.grid}>
+            {DAYS.map((d) => (
+              <div key={d} style={cal.dayLabel}>
+                {d}
+              </div>
+            ))}
+            {cells.map((day, i) => (
+              <DayCell
+                key={i}
+                day={day}
+                expenses={day ? byDay[day] || [] : []}
+                onClick={(d, exps) => setDaySheet({ day: d, expenses: exps })}
+                isToday={
+                  day === new Date().getDate() &&
+                  month === NOW_MONTH &&
+                  year === NOW_YEAR
+                }
+              />
+            ))}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Overview Tab */}
+      {activeTab === "overview" && (
+        <OverviewPage
+          expenses={monthExpenses}
+          total={totalSpent}
+          budget={budget}
+          catBudgets={catBudgets}
+          insights={insights}
+          loadingInsights={loadingInsights}
+          onRefresh={getInsights}
+          month={month}
+          year={year}
+          onMonthChange={handleOverviewMonthChange}
+        />
+      )}
 
       {/* Bottom tab bar */}
       <div style={s.bottomBar}>
-        <button style={s.tabBtn} onClick={() => galleryRef.current?.click()}>
+        {/* Calendar tab */}
+        <button style={s.tabBtn} onClick={() => setActiveTab("calendar")}>
           <svg
             width="24"
             height="24"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#444"
+            stroke={activeTab === "calendar" ? "#F97316" : "#444"}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
+          {activeTab === "calendar" && (
+            <div style={{ ...s.tabDot, background: "#F97316" }} />
+          )}
         </button>
-        <input
-          ref={galleryRef}
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={(e) => {
-            if (e.target.files[0]) {
-              setGalleryFile(e.target.files[0]);
+
+        {/* Camera FAB */}
+        <>
+          <button
+            style={s.fabBtn}
+            onClick={() => {
+              setGalleryFile(null);
               setShowAdd(true);
-            }
-          }}
-        />
-
-        <button
-          style={s.fabBtn}
-          onClick={() => {
-            setGalleryFile(null);
-            setShowAdd(true);
-          }}
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#fff"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            }}
           >
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
-        </button>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+          </button>
+          <input
+            ref={galleryRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              if (e.target.files[0]) {
+                setGalleryFile(e.target.files[0]);
+                setShowAdd(true);
+              }
+            }}
+          />
+        </>
 
-        <button style={s.tabBtn} onClick={() => setShowStats(true)}>
+        {/* Overview tab */}
+        <button style={s.tabBtn} onClick={() => setActiveTab("overview")}>
           <svg
             width="24"
             height="24"
             viewBox="0 0 24 24"
             fill="none"
-            stroke={showStats ? "#F97316" : "#444"}
+            stroke={activeTab === "overview" ? "#F97316" : "#444"}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -550,7 +532,9 @@ export default function App() {
             <line x1="12" y1="20" x2="12" y2="4" />
             <line x1="6" y1="20" x2="6" y2="14" />
           </svg>
-          {showStats && <div style={{ ...s.tabDot, background: "#F97316" }} />}
+          {activeTab === "overview" && (
+            <div style={{ ...s.tabDot, background: "#F97316" }} />
+          )}
         </button>
       </div>
 
@@ -573,17 +557,6 @@ export default function App() {
           setToast={setToast}
         />
       )}
-      {showStats && (
-        <StatsPanel
-          expenses={monthExpenses}
-          total={totalSpent}
-          catBudgets={catBudgets}
-          insights={insights}
-          loadingInsights={loadingInsights}
-          onRefresh={getInsights}
-          onClose={() => setShowStats(false)}
-        />
-      )}
       {showSearch && (
         <SearchModal
           expenses={expenses}
@@ -598,7 +571,7 @@ export default function App() {
           month={month}
           year={year}
           onClose={() => setDaySheet(null)}
-          onSettle={settle}
+          onSettle={() => {}}
           onDelete={deleteExp}
           onSaved={fetchAll}
           setToast={setToast}
