@@ -537,8 +537,6 @@ export default function OverviewPage({
   total,
   budget,
   categories,
-  insights,
-  loadingInsights,
   onRefresh,
   month,
   year,
