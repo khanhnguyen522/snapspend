@@ -74,10 +74,17 @@ export default function App() {
     } catch {}
   };
 
-  const saveCategories = async (newCats) => {
+  const addCategory = async (cat) => {
     try {
-      await axios.put(`${API}/categories`, { categories: newCats });
-      setCategories(newCats);
+      const res = await axios.post(`${API}/categories`, cat);
+      setCategories((prev) => [...prev, res.data.category]);
+    } catch {}
+  };
+
+  const deleteCategory = async (id) => {
+    try {
+      await axios.delete(`${API}/categories/${id}`);
+      setCategories((prev) => prev.filter((c) => c.id !== id));
     } catch {}
   };
 
@@ -414,7 +421,8 @@ export default function App() {
           month={month}
           year={year}
           onMonthChange={handleOverviewMonthChange}
-          onSaveCategories={saveCategories}
+          onAddCategory={addCategory}
+          onDeleteCategory={deleteCategory}
           setToast={setToast}
         />
       )}
@@ -508,7 +516,7 @@ export default function App() {
           setToast={setToast}
           initialFile={galleryFile}
           categories={categories}
-          onSaveCategories={saveCategories}
+          onAddCategory={addCategory}
         />
       )}
       {showSearch && (

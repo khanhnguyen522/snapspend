@@ -22,16 +22,6 @@ const createTables = async () => {
     )
   `);
 
-  // Settings table — text value, per user
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS settings (
-      key VARCHAR(100) NOT NULL,
-      value TEXT,
-      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-      PRIMARY KEY (key, user_id)
-    )
-  `);
-
   // Expenses table
   await pool.query(`
     CREATE TABLE IF NOT EXISTS expenses (
@@ -42,20 +32,23 @@ const createTables = async () => {
       date DATE NOT NULL,
       photo_url TEXT,
       note TEXT,
-      paid_by VARCHAR(255),
-      is_settled BOOLEAN DEFAULT FALSE,
       entry_type VARCHAR(20) DEFAULT 'manual',
       created_at TIMESTAMP DEFAULT NOW(),
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
     )
   `);
 
-  // Migrate existing expenses/settings to have nullable user_id (for old data)
-  await pool
-    .query(
-      `ALTER TABLE expenses ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE CASCADE`,
+  // Buckets table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS buckets (
+      id VARCHAR(50) PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      icon VARCHAR(10) DEFAULT '💰',
+      budget DECIMAL(10,2) DEFAULT 0,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMP DEFAULT NOW()
     )
-    .catch(() => {});
+  `);
 
   console.log("Snapspend tables ready");
 };

@@ -300,7 +300,7 @@ export default function AddModal({
   setToast,
   initialFile,
   categories = [],
-  onSaveCategories,
+  onAddCategory,
 }) {
   const [step, setStep] = useState(initialFile ? "deciding" : "preview");
   const [photo, setPhoto] = useState(initialFile || null);
@@ -357,8 +357,7 @@ export default function AddModal({
   const handleManual = () => setStep("form");
 
   const handleNewBucket = async (cat) => {
-    const newCats = [...categories, cat];
-    await onSaveCategories(newCats);
+    await onAddCategory(cat);
     setForm((f) => ({ ...f, category: cat.id }));
   };
 

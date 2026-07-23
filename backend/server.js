@@ -149,7 +149,7 @@ app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
       [
         store_name || "Manual entry",
         parseFloat(amount),
-        category || "other",
+        category || "uncategorized",
         date || new Date().toISOString().split("T")[0],
         photo_url,
         note || null,
@@ -226,29 +226,54 @@ app.delete("/expenses/:id", auth, async (req, res) => {
   }
 });
 
-// ── Categories ─────────────────────────────────────────────────────────────────
+// ── Buckets ────────────────────────────────────────────────────────────────────
 app.get("/categories", auth, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT value FROM settings WHERE key = 'categories' AND user_id = $1",
+      "SELECT * FROM buckets WHERE user_id = $1 ORDER BY created_at ASC",
       [req.user.id],
     );
-    const raw = result.rows[0]?.value;
-    res.json({ categories: raw ? JSON.parse(raw) : [] });
+    res.json({ categories: result.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put("/categories", auth, async (req, res) => {
+app.post("/categories", auth, async (req, res) => {
   try {
-    const { categories } = req.body;
-    await pool.query(
-      `INSERT INTO settings (key, value, user_id) VALUES ('categories', $1, $2)
-       ON CONFLICT (key, user_id) DO UPDATE SET value = $1`,
-      [JSON.stringify(categories), req.user.id],
+    const { id, name, icon, budget } = req.body;
+    const result = await pool.query(
+      `INSERT INTO buckets (id, name, icon, budget, user_id)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [id, name, icon || "💰", parseFloat(budget) || 0, req.user.id],
     );
-    res.json({ categories });
+    res.json({ category: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/categories/:id", auth, async (req, res) => {
+  try {
+    const { name, icon, budget } = req.body;
+    const result = await pool.query(
+      `UPDATE buckets SET name=$1, icon=$2, budget=$3
+       WHERE id=$4 AND user_id=$5 RETURNING *`,
+      [name, icon, parseFloat(budget) || 0, req.params.id, req.user.id],
+    );
+    res.json({ category: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/categories/:id", auth, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM buckets WHERE id=$1 AND user_id=$2", [
+      req.params.id,
+      req.user.id,
+    ]);
+    res.json({ message: "Deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

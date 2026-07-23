@@ -537,14 +537,15 @@ export default function OverviewPage({
   total,
   budget,
   categories,
-  onRefresh,
   month,
   year,
   onMonthChange,
-  onSaveCategories,
+  onAddCategory,
+  onDeleteCategory,
   setToast,
 }) {
   const [showNewBucket, setShowNewBucket] = useState(false);
+
   const budgetPct = budget > 0 ? (total / budget) * 100 : 0;
   const over = total > budget;
 
@@ -554,15 +555,13 @@ export default function OverviewPage({
     return acc;
   }, {});
 
-  const handleAddBucket = (cat) => {
-    const newCats = [...categories, cat];
-    onSaveCategories(newCats);
+  const handleAddBucket = async (cat) => {
+    await onAddCategory(cat);
     setToast("Bucket added");
   };
 
-  const handleDeleteBucket = (id) => {
-    const newCats = categories.filter((c) => c.id !== id);
-    onSaveCategories(newCats);
+  const handleDeleteBucket = async (id) => {
+    await onDeleteCategory(id);
     setToast("Bucket removed");
   };
 
