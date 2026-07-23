@@ -33,8 +33,6 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [daySheet, setDaySheet] = useState(null);
   const [toast, setToast] = useState(null);
-  const [insights, setInsights] = useState("");
-  const [loadingInsights, setLoadingInsights] = useState(false);
   const galleryRef = useRef();
   const [galleryFile, setGalleryFile] = useState(null);
   const monthStripRef = useRef();
@@ -107,15 +105,6 @@ export default function App() {
       if (remaining.length === 0) setDaySheet(null);
       else setDaySheet({ ...daySheet, expenses: remaining });
     }
-  };
-
-  const getInsights = async () => {
-    setLoadingInsights(true);
-    try {
-      const res = await axios.get(`${API}/insights`);
-      setInsights(res.data.insights);
-    } catch {}
-    setLoadingInsights(false);
   };
 
   const handleSelectDay = (day, month, year) => {
@@ -422,9 +411,6 @@ export default function App() {
           total={totalSpent}
           budget={totalBudget}
           categories={categories}
-          insights={insights}
-          loadingInsights={loadingInsights}
-          onRefresh={getInsights}
           month={month}
           year={year}
           onMonthChange={handleOverviewMonthChange}

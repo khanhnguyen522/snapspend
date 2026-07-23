@@ -254,36 +254,6 @@ app.put("/categories", auth, async (req, res) => {
   }
 });
 
-// ── AI Insights ────────────────────────────────────────────────────────────────
-app.get("/insights", auth, async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT * FROM expenses WHERE user_id = $1 ORDER BY date DESC LIMIT 50",
-      [req.user.id],
-    );
-    if (result.rows.length === 0)
-      return res.json({ insights: "No expenses yet." });
-    const Anthropic = require("@anthropic-ai/sdk");
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const summary = result.rows
-      .map((r) => `${r.store_name} $${r.amount} (${r.category}) ${r.date}`)
-      .join("\n");
-    const msg = await client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 500,
-      messages: [
-        {
-          role: "user",
-          content: `Analyze these expenses and give 3-4 short insights. Be specific with numbers. One sentence each.\n\n${summary}`,
-        },
-      ],
-    });
-    res.json({ insights: msg.content[0].text });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.listen(process.env.PORT || 3001, () =>
   console.log(`Snapspend API on port ${process.env.PORT || 3001}`),
 );
