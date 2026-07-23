@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { getCat, fmt } from "../utils";
-import { MONTHS } from "../constants";
+import { MONTHS, CATEGORIES } from "../constants";
 
 function GaugeChart({ pct, over, spent, budget }) {
   const clampedPct = Math.min(pct, 100);
-  const circumference = Math.PI * 80;
+  const circumference = Math.PI * 90;
   const dashOffset = circumference - (clampedPct / 100) * circumference;
   const color = over ? "#EF4444" : pct > 80 ? "#FBBF24" : "#F97316";
 
@@ -13,24 +14,23 @@ function GaugeChart({ pct, over, spent, budget }) {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        paddingTop: 28,
+        padding: "28px 20px 0",
       }}
     >
-      {/* Gauge */}
-      <div style={{ position: "relative", width: 200, height: 115 }}>
-        <svg width="200" height="115" viewBox="0 0 200 115">
+      <div style={{ position: "relative", width: 220, height: 125 }}>
+        <svg width="220" height="125" viewBox="0 0 220 125">
           <path
-            d="M 20 100 A 80 80 0 0 1 180 100"
+            d="M 20 110 A 90 90 0 0 1 200 110"
             fill="none"
             stroke="#1A1A1A"
-            strokeWidth="12"
+            strokeWidth="14"
             strokeLinecap="round"
           />
           <path
-            d="M 20 100 A 80 80 0 0 1 180 100"
+            d="M 20 110 A 90 90 0 0 1 200 110"
             fill="none"
             stroke={color}
-            strokeWidth="12"
+            strokeWidth="14"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
@@ -40,7 +40,7 @@ function GaugeChart({ pct, over, spent, budget }) {
         <div
           style={{
             position: "absolute",
-            bottom: 8,
+            bottom: 6,
             left: 0,
             right: 0,
             display: "flex",
@@ -48,83 +48,84 @@ function GaugeChart({ pct, over, spent, budget }) {
             alignItems: "center",
           }}
         >
-          {over && (
-            <span
-              style={{
-                fontSize: 10,
-                color: "#EF4444",
-                fontWeight: 700,
-                background: "#EF444420",
-                padding: "2px 8px",
-                borderRadius: 8,
-                marginBottom: 4,
-              }}
-            >
-              OVER
-            </span>
+          {budget === 0 ? (
+            <span style={{ fontSize: 13, color: "#444" }}>No budgets set</span>
+          ) : (
+            <>
+              {over && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "#EF4444",
+                    fontWeight: 700,
+                    background: "#EF444420",
+                    padding: "2px 10px",
+                    borderRadius: 8,
+                    marginBottom: 6,
+                  }}
+                >
+                  OVER BUDGET
+                </span>
+              )}
+              {!over && pct > 80 && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "#FBBF24",
+                    fontWeight: 700,
+                    background: "#FBBF2420",
+                    padding: "2px 10px",
+                    borderRadius: 8,
+                    marginBottom: 6,
+                  }}
+                >
+                  ALMOST THERE
+                </span>
+              )}
+              {!over && pct <= 80 && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "#34D399",
+                    fontWeight: 700,
+                    background: "#34D39920",
+                    padding: "2px 10px",
+                    borderRadius: 8,
+                    marginBottom: 6,
+                  }}
+                >
+                  ON TRACK
+                </span>
+              )}
+              <span
+                style={{
+                  fontSize: 44,
+                  fontWeight: 800,
+                  color,
+                  letterSpacing: "-2px",
+                  lineHeight: 1,
+                }}
+              >
+                {Math.round(pct)}%
+              </span>
+            </>
           )}
-          {!over && pct > 80 && (
-            <span
-              style={{
-                fontSize: 10,
-                color: "#FBBF24",
-                fontWeight: 700,
-                background: "#FBBF2420",
-                padding: "2px 8px",
-                borderRadius: 8,
-                marginBottom: 4,
-              }}
-            >
-              ALMOST
-            </span>
-          )}
-          <span
-            style={{
-              fontSize: 40,
-              fontWeight: 800,
-              color,
-              letterSpacing: "-2px",
-              lineHeight: 1,
-            }}
-          >
-            {Math.round(pct)}%
-          </span>
         </div>
       </div>
 
-      {/* Spent / Available row */}
       <div
         style={{
           display: "flex",
+          justifyContent: "space-between",
           width: "100%",
-          padding: "16px 20px 20px",
-          gap: 12,
+          padding: "20px 4px 20px",
         }}
       >
-        <div
-          style={{
-            flex: 1,
-            background: "#111",
-            borderRadius: 12,
-            padding: "12px 14px",
-            border: "1px solid #1A1A1A",
-          }}
-        >
+        <div>
+          <p style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>Spent</p>
           <p
             style={{
-              fontSize: 10,
-              color: "#555",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              marginBottom: 4,
-            }}
-          >
-            Spent
-          </p>
-          <p
-            style={{
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: 700,
               color: over ? "#EF4444" : "#fff",
             }}
@@ -132,182 +133,333 @@ function GaugeChart({ pct, over, spent, budget }) {
             {fmt(spent)}
           </p>
         </div>
+        {budget > 0 && (
+          <div style={{ textAlign: "right" }}>
+            <p style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>
+              {over ? "Over by" : "Available"}
+            </p>
+            <p
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                color: over ? "#EF4444" : "#34D399",
+              }}
+            >
+              {over ? fmt(spent - budget) : fmt(budget - spent)}
+            </p>
+            <p style={{ fontSize: 11, color: "#333" }}>/ {fmt(budget)}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AddBucketModal({ catBudgets, onSave, onClose }) {
+  const [selectedCat, setSelectedCat] = useState("");
+  const [amount, setAmount] = useState("");
+
+  const available = CATEGORIES.filter(
+    (c) => !catBudgets[c] || catBudgets[c] === "",
+  );
+
+  const save = () => {
+    if (!selectedCat || !amount || isNaN(parseFloat(amount))) return;
+    onSave(selectedCat, amount);
+    onClose();
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(0,0,0,0.85)",
+        backdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        touchAction: "none",
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        style={{
+          background: "#0A0A0A",
+          borderRadius: "20px 20px 0 0",
+          width: "100%",
+          maxWidth: 480,
+          border: "1px solid #1A1A1A",
+          borderBottom: "none",
+          animation: "slideUp 0.25s ease",
+          paddingBottom: 40,
+        }}
+      >
         <div
           style={{
-            flex: 1,
-            background: "#111",
-            borderRadius: 12,
-            padding: "12px 14px",
-            border: "1px solid #1A1A1A",
+            width: 36,
+            height: 4,
+            background: "#222",
+            borderRadius: 2,
+            margin: "12px auto",
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "8px 20px 16px",
+            borderBottom: "1px solid #1A1A1A",
           }}
         >
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#555",
+              fontSize: 14,
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            Cancel
+          </button>
+          <span style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>
+            New bucket
+          </span>
+          <button
+            onClick={save}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#F97316",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            Add
+          </button>
+        </div>
+
+        <div style={{ padding: "20px 20px 0" }}>
+          {/* Category picker */}
           <p
             style={{
-              fontSize: 10,
-              color: "#555",
+              fontSize: 11,
               fontWeight: 600,
+              color: "#444",
               textTransform: "uppercase",
               letterSpacing: "0.06em",
-              marginBottom: 4,
+              marginBottom: 12,
             }}
           >
-            {over ? "Over by" : "Available"}
+            Category
           </p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 8,
+              marginBottom: 24,
+            }}
+          >
+            {available.map((cat) => {
+              const config = getCat(cat);
+              const selected = selectedCat === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCat(cat)}
+                  style={{
+                    background: selected ? `${config.color}20` : "#111",
+                    border: `1.5px solid ${selected ? config.color : "#1A1A1A"}`,
+                    borderRadius: 12,
+                    padding: "12px 8px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                    cursor: "pointer",
+                  }}
+                >
+                  <span style={{ fontSize: 24 }}>{config.icon}</span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: selected ? "#fff" : "#555",
+                      textTransform: "capitalize",
+                      fontFamily: "Inter, sans-serif",
+                    }}
+                  >
+                    {cat}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Amount */}
           <p
             style={{
-              fontSize: 18,
-              fontWeight: 700,
-              color: over ? "#EF4444" : "#34D399",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#444",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: 12,
             }}
           >
-            {over ? fmt(spent - budget) : fmt(budget - spent)}
+            Monthly limit
           </p>
-          <p style={{ fontSize: 11, color: "#333", marginTop: 2 }}>
-            of {fmt(budget)}
-          </p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              borderBottom: "1px solid #1A1A1A",
+              paddingBottom: 16,
+            }}
+          >
+            <span style={{ fontSize: 30, fontWeight: 300, color: "#333" }}>
+              $
+            </span>
+            <input
+              type="number"
+              placeholder="0"
+              autoFocus
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              style={{
+                flex: 1,
+                fontSize: 38,
+                fontWeight: 700,
+                color: "#fff",
+                border: "none",
+                outline: "none",
+                background: "none",
+                fontFamily: "Inter, sans-serif",
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function CategoryBreakdown({ expenses, total, catBudgets }) {
-  const byCategory = expenses.reduce((acc, e) => {
-    const cat = e.category || "other";
-    acc[cat] = (acc[cat] || 0) + parseFloat(e.amount);
-    return acc;
-  }, {});
-
-  const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
-
-  if (sorted.length === 0)
-    return (
-      <div style={{ textAlign: "center", padding: "32px 0" }}>
-        <p style={{ fontSize: 32, marginBottom: 8 }}>🌱</p>
-        <p style={{ fontSize: 14, color: "#333" }}>No expenses this month</p>
-      </div>
-    );
+function BucketCard({ cat, amount, catBudgets, onEdit, onDelete }) {
+  const config = getCat(cat);
+  const catBudget = parseFloat(catBudgets[cat]);
+  const budgetPct = Math.min((amount / catBudget) * 100, 100);
+  const over = amount > catBudget;
+  const remaining = catBudget - amount;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      {sorted.map(([cat, amount]) => {
-        const config = getCat(cat);
-        const pct = total > 0 ? (amount / total) * 100 : 0;
-        const budgetRaw = catBudgets[cat];
-        const catBudget =
-          budgetRaw && budgetRaw !== "" ? parseFloat(budgetRaw) : null;
-        const budgetPct = catBudget
-          ? Math.min((amount / catBudget) * 100, 100)
-          : null;
-        const over = catBudget && amount > catBudget;
-
-        return (
-          <div
-            key={cat}
+    <div
+      style={{
+        background: "#0A0A0A",
+        borderRadius: 16,
+        padding: "16px",
+        border: "1px solid #1A1A1A",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: "50%",
+            background: `${config.color}25`,
+            border: `1.5px solid ${config.color}40`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 22,
+            flexShrink: 0,
+          }}
+        >
+          {config.icon}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p
             style={{
-              background: "#0A0A0A",
-              borderRadius: 14,
-              padding: "14px 16px",
-              border: "1px solid #1A1A1A",
+              fontSize: 15,
+              color: "#fff",
+              fontWeight: 600,
+              textTransform: "capitalize",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                marginBottom: catBudget ? 10 : 0,
-              }}
-            >
-              {/* Icon */}
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  background: `${config.color}18`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 20,
-                  flexShrink: 0,
-                }}
-              >
-                {config.icon}
-              </div>
-
-              {/* Name + subtitle */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p
-                  style={{
-                    fontSize: 14,
-                    color: "#fff",
-                    fontWeight: 600,
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {cat}
-                </p>
-                {catBudget && (
-                  <p
-                    style={{
-                      fontSize: 11,
-                      color: over ? "#EF444488" : "#34D39988",
-                      marginTop: 1,
-                    }}
-                  >
-                    {over
-                      ? `${fmt(amount - catBudget)} over`
-                      : `${fmt(catBudget - amount)} left`}
-                  </p>
-                )}
-              </div>
-
-              {/* Amount */}
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <p
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 700,
-                    color: over ? "#EF4444" : "#fff",
-                  }}
-                >
-                  {fmt(amount)}
-                </p>
-                <p style={{ fontSize: 11, color: "#444", marginTop: 1 }}>
-                  {catBudget ? `/ ${fmt(catBudget)}` : `${Math.round(pct)}%`}
-                </p>
-              </div>
-            </div>
-
-            {/* Progress bar — only show if has budget or spending */}
-            {catBudget && (
-              <div
-                style={{
-                  height: 4,
-                  background: "#1A1A1A",
-                  borderRadius: 2,
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    borderRadius: 2,
-                    width: `${budgetPct}%`,
-                    background: over
-                      ? "#EF4444"
-                      : budgetPct > 80
-                        ? "#FBBF24"
-                        : config.color,
-                    transition: "width 0.5s ease",
-                  }}
-                />
-              </div>
+            {cat}
+          </p>
+          <p style={{ fontSize: 12, marginTop: 2 }}>
+            {over ? (
+              <span style={{ color: "#EF444488" }}>
+                {fmt(Math.abs(remaining))} over
+              </span>
+            ) : (
+              <span style={{ color: "#34D39988" }}>
+                {fmt(remaining)} remaining
+              </span>
             )}
-          </div>
-        );
-      })}
+          </p>
+        </div>
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
+          <p
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              color: over ? "#EF4444" : "#fff",
+            }}
+          >
+            {fmt(amount)}
+          </p>
+          <p style={{ fontSize: 11, color: "#333", marginTop: 2 }}>
+            / {fmt(catBudget)}
+          </p>
+        </div>
+        <button
+          onClick={() => onDelete(cat)}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#333",
+            cursor: "pointer",
+            fontSize: 18,
+            padding: "0 0 0 8px",
+            flexShrink: 0,
+          }}
+        >
+          ×
+        </button>
+      </div>
+      <div
+        style={{
+          marginTop: 12,
+          height: 4,
+          background: "#1A1A1A",
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            borderRadius: 2,
+            width: `${budgetPct}%`,
+            background: over
+              ? "#EF4444"
+              : budgetPct > 80
+                ? "#FBBF24"
+                : config.color,
+            transition: "width 0.6s ease",
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -323,9 +475,43 @@ export default function OverviewPage({
   month,
   year,
   onMonthChange,
+  onSaveBudgets,
+  setToast,
 }) {
+  const [showAddBucket, setShowAddBucket] = useState(false);
   const budgetPct = budget > 0 ? (total / budget) * 100 : 0;
   const over = total > budget;
+
+  const byCategory = expenses.reduce((acc, e) => {
+    const cat = e.category || "other";
+    acc[cat] = (acc[cat] || 0) + parseFloat(e.amount);
+    return acc;
+  }, {});
+
+  const buckets = Object.entries(catBudgets || {})
+    .filter(([, val]) => val && val !== "")
+    .sort((a, b) => {
+      const pctA = (byCategory[a[0]] || 0) / parseFloat(a[1]);
+      const pctB = (byCategory[b[0]] || 0) / parseFloat(b[1]);
+      return pctB - pctA;
+    });
+
+  const handleAddBucket = (cat, amount) => {
+    const newBudgets = { ...catBudgets, [cat]: amount };
+    onSaveBudgets(newBudgets);
+    setToast("Bucket added");
+  };
+
+  const handleDeleteBucket = (cat) => {
+    const newBudgets = { ...catBudgets };
+    delete newBudgets[cat];
+    onSaveBudgets(newBudgets);
+    setToast("Bucket removed");
+  };
+
+  const availableToAdd = CATEGORIES.filter(
+    (c) => !catBudgets[c] || catBudgets[c] === "",
+  );
 
   return (
     <div
@@ -342,7 +528,7 @@ export default function OverviewPage({
       {/* Header */}
       <div
         style={{
-          padding: "52px 20px 16px",
+          padding: "52px 20px 14px",
           flexShrink: 0,
           borderBottom: "1px solid #111",
         }}
@@ -357,16 +543,16 @@ export default function OverviewPage({
           <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff" }}>
             Overview
           </h2>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
             <button
               onClick={() => onMonthChange(-1)}
               style={{
                 background: "none",
                 border: "none",
-                color: "#555",
+                color: "#444",
                 fontSize: 22,
                 cursor: "pointer",
-                padding: "0 6px",
+                padding: "0 8px",
               }}
             >
               ‹
@@ -374,7 +560,7 @@ export default function OverviewPage({
             <span
               style={{
                 fontSize: 13,
-                color: "#888",
+                color: "#666",
                 minWidth: 90,
                 textAlign: "center",
               }}
@@ -386,10 +572,10 @@ export default function OverviewPage({
               style={{
                 background: "none",
                 border: "none",
-                color: "#555",
+                color: "#444",
                 fontSize: 22,
                 cursor: "pointer",
-                padding: "0 6px",
+                padding: "0 8px",
               }}
             >
               ›
@@ -400,12 +586,12 @@ export default function OverviewPage({
 
       {/* Scrollable */}
       <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 100px" }}>
-        {/* Gauge card */}
+        {/* Gauge */}
         <div
           style={{
             background: "#0A0A0A",
             borderRadius: 20,
-            margin: "16px 0 20px",
+            margin: "16px 0 8px",
             border: "1px solid #1A1A1A",
             overflow: "hidden",
           }}
@@ -417,7 +603,7 @@ export default function OverviewPage({
             budget={budget}
           />
           <div
-            style={{ padding: "10px 20px 14px", borderTop: "1px solid #111" }}
+            style={{ padding: "8px 20px 14px", borderTop: "1px solid #111" }}
           >
             <p style={{ fontSize: 12, color: "#333" }}>
               {expenses.length} expense{expenses.length !== 1 ? "s" : ""} this
@@ -426,24 +612,102 @@ export default function OverviewPage({
           </div>
         </div>
 
-        {/* Category section */}
-        <p
+        {/* Buckets header */}
+        <div
           style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#444",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
+            marginTop: 20,
             marginBottom: 12,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          Spending
-        </p>
-        <CategoryBreakdown
-          expenses={expenses}
-          total={total}
-          catBudgets={catBudgets || {}}
-        />
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#444",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            Budgets
+          </p>
+          {availableToAdd.length > 0 && (
+            <button
+              onClick={() => setShowAddBucket(true)}
+              style={{
+                background: "linear-gradient(135deg,#F97316,#EC4899)",
+                border: "none",
+                borderRadius: 20,
+                padding: "5px 14px",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              + Add bucket
+            </button>
+          )}
+        </div>
+
+        {/* Bucket list */}
+        {buckets.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px 20px",
+              background: "#0A0A0A",
+              borderRadius: 16,
+              border: "1px solid #1A1A1A",
+            }}
+          >
+            <p style={{ fontSize: 32, marginBottom: 12 }}>💰</p>
+            <p
+              style={{
+                fontSize: 15,
+                color: "#fff",
+                fontWeight: 600,
+                marginBottom: 6,
+              }}
+            >
+              No budgets yet
+            </p>
+            <p style={{ fontSize: 13, color: "#333", marginBottom: 20 }}>
+              Add a bucket to start tracking your spending by category
+            </p>
+            <button
+              onClick={() => setShowAddBucket(true)}
+              style={{
+                background: "linear-gradient(135deg,#F97316,#EC4899)",
+                border: "none",
+                borderRadius: 12,
+                padding: "12px 24px",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              + Add your first bucket
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {buckets.map(([cat]) => (
+              <BucketCard
+                key={cat}
+                cat={cat}
+                amount={byCategory[cat] || 0}
+                catBudgets={catBudgets}
+                onDelete={handleDeleteBucket}
+              />
+            ))}
+          </div>
+        )}
 
         {/* AI Insights */}
         <div
@@ -484,7 +748,6 @@ export default function OverviewPage({
               </button>
             )}
           </div>
-
           {!insights && !loadingInsights && (
             <button
               onClick={onRefresh}
@@ -504,13 +767,11 @@ export default function OverviewPage({
               ✦ Analyze my spending
             </button>
           )}
-
           {loadingInsights && (
             <p style={{ fontSize: 13, color: "#444" }}>
               Analyzing your spending...
             </p>
           )}
-
           {insights &&
             !loadingInsights &&
             insights
@@ -531,6 +792,14 @@ export default function OverviewPage({
               ))}
         </div>
       </div>
+
+      {showAddBucket && (
+        <AddBucketModal
+          catBudgets={catBudgets}
+          onSave={handleAddBucket}
+          onClose={() => setShowAddBucket(false)}
+        />
+      )}
     </div>
   );
 }

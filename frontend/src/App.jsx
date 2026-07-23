@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { MONTHS, DAYS } from "./constants";
-import { fmt } from "./utils";
 import { appStyles as s } from "./styles/app";
 import { calendarStyles as cal } from "./styles/calendar";
 import AddModal from "./components/AddModal";
-import BudgetModal from "./components/BudgetModal";
 import DayCell from "./components/DayCell";
 import DaySheet from "./components/DaySheet";
 import OverviewPage from "./components/OverviewPage";
@@ -27,13 +25,11 @@ export default function App() {
     return u ? JSON.parse(u) : null;
   });
   const [expenses, setExpenses] = useState([]);
-  const [budget, setBudget] = useState(500);
   const [catBudgets, setCatBudgets] = useState({});
   const [month, setMonth] = useState(NOW_MONTH);
   const [year, setYear] = useState(NOW_YEAR);
   const [activeTab, setActiveTab] = useState("calendar");
   const [showAdd, setShowAdd] = useState(false);
-  const [showBudget, setShowBudget] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [daySheet, setDaySheet] = useState(null);
@@ -63,23 +59,28 @@ export default function App() {
   }, [month]);
 
   useEffect(() => {
-    const anyOpen = showAdd || showBudget || showSearch || !!daySheet;
+    const anyOpen = showAdd || showSearch || !!daySheet;
     document.body.style.overflow = anyOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [showAdd, showBudget, showSearch, daySheet]);
+  }, [showAdd, showSearch, daySheet]);
 
   const fetchAll = async () => {
     try {
-      const [expRes, budRes, catBudRes] = await Promise.all([
+      const [expRes, catBudRes] = await Promise.all([
         axios.get(`${API}/expenses`),
-        axios.get(`${API}/budget`),
         axios.get(`${API}/category-budgets`),
       ]);
       setExpenses(expRes.data);
-      setBudget(parseFloat(budRes.data.budget));
       setCatBudgets(catBudRes.data.budgets || {});
+    } catch {}
+  };
+
+  const saveCatBudgets = async (newBudgets) => {
+    try {
+      await axios.put(`${API}/category-budgets`, { budgets: newBudgets });
+      setCatBudgets(newBudgets);
     } catch {}
   };
 
@@ -96,7 +97,6 @@ export default function App() {
     delete axios.defaults.headers.common["Authorization"];
     setUser(null);
     setExpenses([]);
-    setBudget(500);
     setCatBudgets({});
   };
 
@@ -170,8 +170,11 @@ export default function App() {
     (s, e) => s + parseFloat(e.amount),
     0,
   );
-  const budgetPct = Math.min((totalSpent / budget) * 100, 100);
-  const over = totalSpent > budget;
+
+  // Total budget = sum of all buckets
+  const totalBudget = Object.values(catBudgets)
+    .filter((v) => v && v !== "")
+    .reduce((s, v) => s + parseFloat(v), 0);
 
   const getMonthRingStyle = (i) => {
     const isActive = i === month;
@@ -205,7 +208,6 @@ export default function App() {
       {/* Calendar Tab */}
       {activeTab === "calendar" && (
         <div style={s.container}>
-          {/* Header */}
           <div style={s.header}>
             <div>
               <h1 style={s.logo}>snapspend</h1>
@@ -331,26 +333,6 @@ export default function App() {
                       <button
                         onClick={() => {
                           setShowProfileMenu(false);
-                          setShowBudget(true);
-                        }}
-                        style={{
-                          width: "100%",
-                          background: "none",
-                          border: "none",
-                          color: "#ccc",
-                          fontSize: 13,
-                          padding: "10px 12px",
-                          textAlign: "left",
-                          cursor: "pointer",
-                          borderRadius: 8,
-                          fontFamily: "Inter, sans-serif",
-                        }}
-                      >
-                        Budget settings
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowProfileMenu(false);
                           logout();
                         }}
                         style={{
@@ -375,7 +357,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Month strip */}
           <div ref={monthStripRef} className="month-strip" style={s.monthStrip}>
             {MONTHS.map((m, i) => {
               const isActive = i === month;
@@ -415,7 +396,6 @@ export default function App() {
             })}
           </div>
 
-          {/* Calendar */}
           <div style={cal.grid}>
             {DAYS.map((d) => (
               <div key={d} style={cal.dayLabel}>
@@ -444,7 +424,7 @@ export default function App() {
         <OverviewPage
           expenses={monthExpenses}
           total={totalSpent}
-          budget={budget}
+          budget={totalBudget}
           catBudgets={catBudgets}
           insights={insights}
           loadingInsights={loadingInsights}
@@ -452,12 +432,13 @@ export default function App() {
           month={month}
           year={year}
           onMonthChange={handleOverviewMonthChange}
+          onSaveBudgets={saveCatBudgets}
+          setToast={setToast}
         />
       )}
 
       {/* Bottom tab bar */}
       <div style={s.bottomBar}>
-        {/* Calendar tab */}
         <button style={s.tabBtn} onClick={() => setActiveTab("calendar")}>
           <svg
             width="24"
@@ -479,7 +460,6 @@ export default function App() {
           )}
         </button>
 
-        {/* Camera FAB */}
         <>
           <button
             style={s.fabBtn}
@@ -516,7 +496,6 @@ export default function App() {
           />
         </>
 
-        {/* Overview tab */}
         <button style={s.tabBtn} onClick={() => setActiveTab("overview")}>
           <svg
             width="24"
@@ -547,14 +526,6 @@ export default function App() {
           onSaved={fetchAll}
           setToast={setToast}
           initialFile={galleryFile}
-        />
-      )}
-      {showBudget && (
-        <BudgetModal
-          current={budget}
-          onClose={() => setShowBudget(false)}
-          onSaved={fetchAll}
-          setToast={setToast}
         />
       )}
       {showSearch && (
