@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { getCat, fmt } from "../utils";
-import { MONTHS, CATEGORIES } from "../constants";
+import { fmt } from "../utils";
+import { MONTHS } from "../constants";
 
 const ICONS = [
   "🏠",
@@ -33,6 +33,16 @@ const ICONS = [
   "🚌",
   "🎓",
   "💰",
+  "🐶",
+  "🎨",
+  "⚽",
+  "🏖️",
+  "🍜",
+  "🥗",
+  "🎪",
+  "🏦",
+  "💡",
+  "🔧",
 ];
 
 function GaugeChart({ pct, over, spent, budget }) {
@@ -187,61 +197,18 @@ function GaugeChart({ pct, over, spent, budget }) {
   );
 }
 
-function AddBucketModal({ onSave, onClose }) {
+function NewBucketModal({ onSave, onClose }) {
   const [name, setName] = useState("");
-  const [selectedIcon, setSelectedIcon] = useState("💰");
-  const [amount, setAmount] = useState("");
-
-  const ICONS = [
-    "🏠",
-    "🚗",
-    "🛒",
-    "🍽️",
-    "🧋",
-    "🛍️",
-    "🎬",
-    "💊",
-    "🛡️",
-    "📚",
-    "✈️",
-    "🐾",
-    "👶",
-    "💪",
-    "🎮",
-    "🎵",
-    "💈",
-    "🧴",
-    "⚡",
-    "📱",
-    "🏋️",
-    "🌿",
-    "🎁",
-    "💻",
-    "🏥",
-    "🍕",
-    "☕",
-    "🚌",
-    "🎓",
-    "💰",
-    "🐶",
-    "🎨",
-    "⚽",
-    "🏖️",
-    "🍜",
-    "🥗",
-    "🎪",
-    "🏦",
-    "💡",
-    "🔧",
-  ];
+  const [icon, setIcon] = useState("💰");
+  const [budget, setBudget] = useState("");
 
   const save = () => {
-    if (!name.trim() || !amount || isNaN(parseFloat(amount))) return;
+    if (!name.trim()) return;
     onSave({
       id: Date.now().toString(),
       name: name.trim(),
-      icon: selectedIcon,
-      amount: parseFloat(amount),
+      icon,
+      budget: budget ? parseFloat(budget) : 0,
     });
     onClose();
   };
@@ -251,12 +218,12 @@ function AddBucketModal({ onSave, onClose }) {
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 1000,
+        zIndex: 2000,
         background: "#000",
         display: "flex",
         flexDirection: "column",
         fontFamily: "Inter, sans-serif",
-        animation: "slideUp 0.25s ease",
+        animation: "slideUp 0.2s ease",
         touchAction: "none",
       }}
     >
@@ -301,7 +268,6 @@ function AddBucketModal({ onSave, onClose }) {
           Add
         </button>
       </div>
-
       <div
         style={{
           flex: 1,
@@ -310,52 +276,6 @@ function AddBucketModal({ onSave, onClose }) {
           touchAction: "pan-y",
         }}
       >
-        {/* Amount */}
-        <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#444",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            marginBottom: 12,
-          }}
-        >
-          Monthly limit
-        </p>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            marginBottom: 28,
-            paddingBottom: 20,
-            borderBottom: "1px solid #111",
-          }}
-        >
-          <span style={{ fontSize: 30, fontWeight: 300, color: "#333" }}>
-            $
-          </span>
-          <input
-            type="number"
-            placeholder="0"
-            autoFocus
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            style={{
-              flex: 1,
-              fontSize: 38,
-              fontWeight: 700,
-              color: "#fff",
-              border: "none",
-              outline: "none",
-              background: "none",
-              fontFamily: "Inter, sans-serif",
-            }}
-          />
-        </div>
-
-        {/* Name */}
         <p
           style={{
             fontSize: 11,
@@ -370,9 +290,10 @@ function AddBucketModal({ onSave, onClose }) {
         </p>
         <input
           type="text"
-          placeholder="e.g. Rent, Groceries, Savings..."
+          placeholder="e.g. Groceries, Rent, Savings..."
           value={name}
           onChange={(e) => setName(e.target.value)}
+          autoFocus
           style={{
             width: "100%",
             background: "#0A0A0A",
@@ -383,12 +304,52 @@ function AddBucketModal({ onSave, onClose }) {
             color: "#fff",
             outline: "none",
             fontFamily: "Inter, sans-serif",
-            marginBottom: 28,
+            marginBottom: 24,
             boxSizing: "border-box",
           }}
         />
 
-        {/* Icon picker */}
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#444",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            marginBottom: 12,
+          }}
+        >
+          Monthly budget (optional)
+        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            marginBottom: 24,
+            paddingBottom: 20,
+            borderBottom: "1px solid #111",
+          }}
+        >
+          <span style={{ fontSize: 24, color: "#333" }}>$</span>
+          <input
+            type="number"
+            placeholder="0"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            style={{
+              flex: 1,
+              fontSize: 28,
+              fontWeight: 700,
+              color: "#fff",
+              border: "none",
+              outline: "none",
+              background: "none",
+              fontFamily: "Inter, sans-serif",
+            }}
+          />
+        </div>
+
         <p
           style={{
             fontSize: 11,
@@ -408,13 +369,13 @@ function AddBucketModal({ onSave, onClose }) {
             gap: 8,
           }}
         >
-          {ICONS.map((icon) => (
+          {ICONS.map((i) => (
             <button
-              key={icon}
-              onClick={() => setSelectedIcon(icon)}
+              key={i}
+              onClick={() => setIcon(i)}
               style={{
-                background: selectedIcon === icon ? "#F9731620" : "#0A0A0A",
-                border: `1.5px solid ${selectedIcon === icon ? "#F97316" : "#1A1A1A"}`,
+                background: icon === i ? "#F9731620" : "#0A0A0A",
+                border: `1.5px solid ${icon === i ? "#F97316" : "#1A1A1A"}`,
                 borderRadius: 12,
                 padding: "10px 0",
                 fontSize: 22,
@@ -424,12 +385,11 @@ function AddBucketModal({ onSave, onClose }) {
                 justifyContent: "center",
               }}
             >
-              {icon}
+              {i}
             </button>
           ))}
         </div>
       </div>
-
       <div
         style={{
           padding: "12px 20px 36px",
@@ -439,17 +399,16 @@ function AddBucketModal({ onSave, onClose }) {
       >
         <button
           onClick={save}
-          disabled={!name.trim() || !amount}
+          disabled={!name.trim()}
           style={{
             width: "100%",
             padding: "16px",
-            background:
-              name.trim() && amount
-                ? "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)"
-                : "#111",
+            background: name.trim()
+              ? "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)"
+              : "#111",
             border: "none",
             borderRadius: 14,
-            color: name.trim() && amount ? "#fff" : "#333",
+            color: name.trim() ? "#fff" : "#333",
             fontSize: 15,
             fontWeight: 700,
             cursor: "pointer",
@@ -463,11 +422,12 @@ function AddBucketModal({ onSave, onClose }) {
   );
 }
 
-function BucketCard({ bucket, spent, onDelete }) {
-  const budgetAmt = parseFloat(bucket.amount);
-  const budgetPct = Math.min((spent / budgetAmt) * 100, 100);
-  const over = spent > budgetAmt;
-  const remaining = budgetAmt - spent;
+function BucketCard({ cat, spent, onDelete }) {
+  const budget = parseFloat(cat.budget || 0);
+  const hasBudget = budget > 0;
+  const budgetPct = hasBudget ? Math.min((spent / budget) * 100, 100) : 0;
+  const over = hasBudget && spent > budget;
+  const remaining = budget - spent;
 
   return (
     <div
@@ -492,23 +452,25 @@ function BucketCard({ bucket, spent, onDelete }) {
             flexShrink: 0,
           }}
         >
-          {bucket.icon}
+          {cat.icon}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontSize: 15, color: "#fff", fontWeight: 600 }}>
-            {bucket.name}
+            {cat.name}
           </p>
-          <p style={{ fontSize: 12, marginTop: 2 }}>
-            {over ? (
-              <span style={{ color: "#EF444488" }}>
-                {fmt(Math.abs(remaining))} over
-              </span>
-            ) : (
-              <span style={{ color: "#34D39988" }}>
-                {fmt(remaining)} remaining
-              </span>
-            )}
-          </p>
+          {hasBudget && (
+            <p style={{ fontSize: 12, marginTop: 2 }}>
+              {over ? (
+                <span style={{ color: "#EF444488" }}>
+                  {fmt(Math.abs(remaining))} over
+                </span>
+              ) : (
+                <span style={{ color: "#34D39988" }}>
+                  {fmt(remaining)} left
+                </span>
+              )}
+            </p>
+          )}
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <p
@@ -520,12 +482,14 @@ function BucketCard({ bucket, spent, onDelete }) {
           >
             {fmt(spent)}
           </p>
-          <p style={{ fontSize: 11, color: "#333", marginTop: 2 }}>
-            / {fmt(budgetAmt)}
-          </p>
+          {hasBudget && (
+            <p style={{ fontSize: 11, color: "#333", marginTop: 2 }}>
+              / {fmt(budget)}
+            </p>
+          )}
         </div>
         <button
-          onClick={() => onDelete(bucket.id)}
+          onClick={() => onDelete(cat.id)}
           style={{
             background: "none",
             border: "none",
@@ -539,29 +503,31 @@ function BucketCard({ bucket, spent, onDelete }) {
           ×
         </button>
       </div>
-      <div
-        style={{
-          marginTop: 12,
-          height: 4,
-          background: "#1A1A1A",
-          borderRadius: 2,
-          overflow: "hidden",
-        }}
-      >
+      {hasBudget && (
         <div
           style={{
-            height: "100%",
+            marginTop: 12,
+            height: 4,
+            background: "#1A1A1A",
             borderRadius: 2,
-            width: `${budgetPct}%`,
-            background: over
-              ? "#EF4444"
-              : budgetPct > 80
-                ? "#FBBF24"
-                : "#F97316",
-            transition: "width 0.6s ease",
+            overflow: "hidden",
           }}
-        />
-      </div>
+        >
+          <div
+            style={{
+              height: "100%",
+              borderRadius: 2,
+              width: `${budgetPct}%`,
+              background: over
+                ? "#EF4444"
+                : budgetPct > 80
+                  ? "#FBBF24"
+                  : "#F97316",
+              transition: "width 0.6s ease",
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -570,36 +536,35 @@ export default function OverviewPage({
   expenses,
   total,
   budget,
-  buckets,
+  categories,
   insights,
   loadingInsights,
   onRefresh,
   month,
   year,
   onMonthChange,
-  onSaveBuckets,
+  onSaveCategories,
   setToast,
 }) {
-  const [showAddBucket, setShowAddBucket] = useState(false);
+  const [showNewBucket, setShowNewBucket] = useState(false);
   const budgetPct = budget > 0 ? (total / budget) * 100 : 0;
   const over = total > budget;
 
-  // Calculate spent per category
   const byCategory = expenses.reduce((acc, e) => {
-    const cat = e.category || "other";
+    const cat = e.category || "uncategorized";
     acc[cat] = (acc[cat] || 0) + parseFloat(e.amount);
     return acc;
   }, {});
 
-  const handleAddBucket = (bucket) => {
-    const newBuckets = [...buckets, bucket];
-    onSaveBuckets(newBuckets);
+  const handleAddBucket = (cat) => {
+    const newCats = [...categories, cat];
+    onSaveCategories(newCats);
     setToast("Bucket added");
   };
 
   const handleDeleteBucket = (id) => {
-    const newBuckets = buckets.filter((b) => b.id !== id);
-    onSaveBuckets(newBuckets);
+    const newCats = categories.filter((c) => c.id !== id);
+    onSaveCategories(newCats);
     setToast("Bucket removed");
   };
 
@@ -674,7 +639,6 @@ export default function OverviewPage({
         </div>
       </div>
 
-      {/* Scrollable */}
       <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 100px" }}>
         {/* Gauge */}
         <div
@@ -724,7 +688,7 @@ export default function OverviewPage({
             Buckets
           </p>
           <button
-            onClick={() => setShowAddBucket(true)}
+            onClick={() => setShowNewBucket(true)}
             style={{
               background: "linear-gradient(135deg,#F97316,#EC4899)",
               border: "none",
@@ -737,12 +701,11 @@ export default function OverviewPage({
               fontFamily: "Inter, sans-serif",
             }}
           >
-            + Add bucket
+            + Add
           </button>
         </div>
 
-        {/* Bucket list */}
-        {buckets.length === 0 ? (
+        {categories.length === 0 ? (
           <div
             style={{
               textAlign: "center",
@@ -752,7 +715,7 @@ export default function OverviewPage({
               border: "1px solid #1A1A1A",
             }}
           >
-            <p style={{ fontSize: 32, marginBottom: 12 }}>💰</p>
+            <p style={{ fontSize: 32, marginBottom: 12 }}>🪣</p>
             <p
               style={{
                 fontSize: 15,
@@ -764,10 +727,10 @@ export default function OverviewPage({
               No buckets yet
             </p>
             <p style={{ fontSize: 13, color: "#333", marginBottom: 20 }}>
-              Create buckets to track spending by category
+              Create buckets to organize your spending
             </p>
             <button
-              onClick={() => setShowAddBucket(true)}
+              onClick={() => setShowNewBucket(true)}
               style={{
                 background: "linear-gradient(135deg,#F97316,#EC4899)",
                 border: "none",
@@ -785,11 +748,11 @@ export default function OverviewPage({
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {buckets.map((bucket) => (
+            {categories.map((cat) => (
               <BucketCard
-                key={bucket.id}
-                bucket={bucket}
-                spent={byCategory[bucket.category] || 0}
+                key={cat.id}
+                cat={cat}
+                spent={byCategory[cat.id] || 0}
                 onDelete={handleDeleteBucket}
               />
             ))}
@@ -880,10 +843,10 @@ export default function OverviewPage({
         </div>
       </div>
 
-      {showAddBucket && (
-        <AddBucketModal
+      {showNewBucket && (
+        <NewBucketModal
           onSave={handleAddBucket}
-          onClose={() => setShowAddBucket(false)}
+          onClose={() => setShowNewBucket(false)}
         />
       )}
     </div>

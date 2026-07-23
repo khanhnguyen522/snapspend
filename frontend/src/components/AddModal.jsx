@@ -1,10 +1,52 @@
 import { useState, useRef } from "react";
 import axios from "axios";
 import { modalStyles as m } from "../styles/modal";
-import { CATEGORIES } from "../constants";
-import { getCat, today } from "../utils";
+import { today } from "../utils";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
+const ICONS = [
+  "🏠",
+  "🚗",
+  "🛒",
+  "🍽️",
+  "🧋",
+  "🛍️",
+  "🎬",
+  "💊",
+  "🛡️",
+  "📚",
+  "✈️",
+  "🐾",
+  "👶",
+  "💪",
+  "🎮",
+  "🎵",
+  "💈",
+  "🧴",
+  "⚡",
+  "📱",
+  "🏋️",
+  "🌿",
+  "🎁",
+  "💻",
+  "🏥",
+  "🍕",
+  "☕",
+  "🚌",
+  "🎓",
+  "💰",
+  "🐶",
+  "🎨",
+  "⚽",
+  "🏖️",
+  "🍜",
+  "🥗",
+  "🎪",
+  "🏦",
+  "💡",
+  "🔧",
+];
 
 function Field({ label, children }) {
   return (
@@ -27,12 +69,238 @@ function Field({ label, children }) {
   );
 }
 
+function NewBucketModal({ onSave, onClose }) {
+  const [name, setName] = useState("");
+  const [icon, setIcon] = useState("💰");
+  const [budget, setBudget] = useState("");
+
+  const save = () => {
+    if (!name.trim()) return;
+    onSave({
+      id: Date.now().toString(),
+      name: name.trim(),
+      icon,
+      budget: budget ? parseFloat(budget) : 0,
+    });
+    onClose();
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 2000,
+        background: "#000",
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: "Inter, sans-serif",
+        animation: "slideUp 0.2s ease",
+        touchAction: "none",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "52px 20px 16px",
+          borderBottom: "1px solid #111",
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={onClose}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#555",
+            fontSize: 14,
+            cursor: "pointer",
+            fontFamily: "Inter, sans-serif",
+          }}
+        >
+          Cancel
+        </button>
+        <span style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>
+          New bucket
+        </span>
+        <button
+          onClick={save}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#F97316",
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "Inter, sans-serif",
+          }}
+        >
+          Add
+        </button>
+      </div>
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "24px 20px 48px",
+          touchAction: "pan-y",
+        }}
+      >
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#444",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            marginBottom: 12,
+          }}
+        >
+          Name
+        </p>
+        <input
+          type="text"
+          placeholder="e.g. Groceries, Rent, Savings..."
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoFocus
+          style={{
+            width: "100%",
+            background: "#0A0A0A",
+            border: "1px solid #1A1A1A",
+            borderRadius: 12,
+            padding: "14px 16px",
+            fontSize: 15,
+            color: "#fff",
+            outline: "none",
+            fontFamily: "Inter, sans-serif",
+            marginBottom: 24,
+            boxSizing: "border-box",
+          }}
+        />
+
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#444",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            marginBottom: 12,
+          }}
+        >
+          Monthly budget (optional)
+        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            marginBottom: 24,
+            paddingBottom: 20,
+            borderBottom: "1px solid #111",
+          }}
+        >
+          <span style={{ fontSize: 24, color: "#333" }}>$</span>
+          <input
+            type="number"
+            placeholder="0"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            style={{
+              flex: 1,
+              fontSize: 28,
+              fontWeight: 700,
+              color: "#fff",
+              border: "none",
+              outline: "none",
+              background: "none",
+              fontFamily: "Inter, sans-serif",
+            }}
+          />
+        </div>
+
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#444",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            marginBottom: 12,
+          }}
+        >
+          Icon
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(6, 1fr)",
+            gap: 8,
+          }}
+        >
+          {ICONS.map((i) => (
+            <button
+              key={i}
+              onClick={() => setIcon(i)}
+              style={{
+                background: icon === i ? "#F9731620" : "#0A0A0A",
+                border: `1.5px solid ${icon === i ? "#F97316" : "#1A1A1A"}`,
+                borderRadius: 12,
+                padding: "10px 0",
+                fontSize: 22,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {i}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div
+        style={{
+          padding: "12px 20px 36px",
+          borderTop: "1px solid #111",
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={save}
+          disabled={!name.trim()}
+          style={{
+            width: "100%",
+            padding: "16px",
+            background: name.trim()
+              ? "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)"
+              : "#111",
+            border: "none",
+            borderRadius: 14,
+            color: name.trim() ? "#fff" : "#333",
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "Inter, sans-serif",
+          }}
+        >
+          {name.trim() ? `Add "${name}" bucket` : "Enter a name"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AddModal({
   onClose,
   onSaved,
   setToast,
   initialFile,
-  buckets = [],
+  categories = [],
+  onSaveCategories,
 }) {
   const [step, setStep] = useState(initialFile ? "deciding" : "preview");
   const [photo, setPhoto] = useState(initialFile || null);
@@ -41,21 +309,15 @@ export default function AddModal({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [showNewBucket, setShowNewBucket] = useState(false);
   const [form, setForm] = useState({
     amount: "",
     store_name: "",
-    category: "other",
+    category: "",
     note: "",
     date: today(),
   });
-  const [suggestedBucket, setSuggestedBucket] = useState(null);
-  const [selectedBucket, setSelectedBucket] = useState(null);
   const cameraRef = useRef();
-
-  const findSuggestedBucket = (category) => {
-    const match = buckets.find((b) => b.category === category);
-    return match || null;
-  };
 
   const handleFile = (file) => {
     if (!file) {
@@ -74,16 +336,18 @@ export default function AddModal({
     try {
       const res = await axios.post(`${API}/expenses/scan`, fd);
       const e = res.data.extracted;
+      const matched = categories.find(
+        (c) =>
+          c.name.toLowerCase().includes(e.category) ||
+          e.category.includes(c.name.toLowerCase()),
+      );
       setForm((f) => ({
         ...f,
         amount: e.amount,
         store_name: e.store_name,
-        category: e.category,
         date: e.date,
+        category: matched?.id || "",
       }));
-      const suggested = findSuggestedBucket(e.category);
-      setSuggestedBucket(suggested);
-      setSelectedBucket(suggested);
     } catch {
       setError("Could not read receipt. Fill in manually.");
     }
@@ -92,11 +356,10 @@ export default function AddModal({
 
   const handleManual = () => setStep("form");
 
-  const handleCategoryChange = (cat) => {
-    setForm((f) => ({ ...f, category: cat }));
-    const suggested = findSuggestedBucket(cat);
-    setSuggestedBucket(suggested);
-    setSelectedBucket(suggested);
+  const handleNewBucket = async (cat) => {
+    const newCats = [...categories, cat];
+    await onSaveCategories(newCats);
+    setForm((f) => ({ ...f, category: cat.id }));
   };
 
   const save = async () => {
@@ -111,7 +374,7 @@ export default function AddModal({
       if (photo) fd.append("photo", photo);
       fd.append("amount", parseFloat(form.amount));
       fd.append("store_name", form.store_name || "Expense");
-      fd.append("category", form.category);
+      fd.append("category", form.category || "uncategorized");
       fd.append("note", form.note);
       fd.append("date", form.date);
       await axios.post(`${API}/expenses/manual`, fd);
@@ -290,40 +553,34 @@ export default function AddModal({
           inset: 0,
           zIndex: 1000,
           background: "#000",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
         }}
       >
-        <div style={{ position: "relative", width: "100%", height: "100%" }}>
-          <img
-            src={preview}
-            alt=""
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-              opacity: 0.3,
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 16,
-            }}
-          >
-            <div style={m.scanSpinner} />
-            <p style={{ color: "#888", fontSize: 14 }}>
-              Claude is reading your receipt...
-            </p>
-          </div>
+        <img
+          src={preview}
+          alt=""
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            opacity: 0.3,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+          }}
+        >
+          <div style={m.scanSpinner} />
+          <p style={{ color: "#888", fontSize: 14 }}>
+            Claude is reading your receipt...
+          </p>
         </div>
       </div>
     );
@@ -336,33 +593,29 @@ export default function AddModal({
       <div style={m.sheet}>
         <div style={m.handle} />
         <div style={m.sheetHeader}>
-          <button onClick={() => setStep("deciding")} style={m.backBtn}>
+          <button
+            onClick={() => (photo ? setStep("deciding") : onClose())}
+            style={m.backBtn}
+          >
             ‹ Back
           </button>
           <span style={m.sheetTitle2}>Details</span>
           <div style={{ width: 60 }} />
         </div>
-        <div
-          style={{
-            padding: "0 20px 32px",
-            overflowY: "auto",
-            maxHeight: "75vh",
-          }}
-        >
+        <div style={{ padding: "0 20px 32px", overflowY: "auto", flex: 1 }}>
           {preview && (
-            <div style={{ position: "relative", marginBottom: 16 }}>
-              <img
-                src={preview}
-                alt=""
-                style={{
-                  width: "100%",
-                  height: 140,
-                  objectFit: "cover",
-                  borderRadius: 12,
-                  display: "block",
-                }}
-              />
-            </div>
+            <img
+              src={preview}
+              alt=""
+              style={{
+                width: "100%",
+                height: 140,
+                objectFit: "cover",
+                borderRadius: 12,
+                display: "block",
+                marginBottom: 16,
+              }}
+            />
           )}
 
           <div style={m.amountRow}>
@@ -387,31 +640,97 @@ export default function AddModal({
             />
           </Field>
 
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
-          >
-            <Field label="Category">
-              <select
-                value={form.category}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                style={m.input}
+          <Field label="Date">
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              style={m.input}
+            />
+          </Field>
+
+          <Field label="Bucket">
+            {categories.length === 0 ? (
+              <button
+                onClick={() => setShowNewBucket(true)}
+                style={{
+                  width: "100%",
+                  background: "#111",
+                  border: "1px dashed #333",
+                  borderRadius: 10,
+                  padding: "12px",
+                  color: "#F97316",
+                  fontSize: 13,
+                  cursor: "pointer",
+                  fontFamily: "Inter, sans-serif",
+                }}
               >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {getCat(c).icon} {c}
-                  </option>
+                + Create your first bucket
+              </button>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setForm((f) => ({ ...f, category: cat.id }))}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      background:
+                        form.category === cat.id ? "#F9731615" : "#111",
+                      border: `1px solid ${form.category === cat.id ? "#F97316" : "#1A1A1A"}`,
+                      borderRadius: 10,
+                      padding: "10px 12px",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>{cat.icon}</span>
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: 13,
+                        color: form.category === cat.id ? "#fff" : "#888",
+                        fontFamily: "Inter, sans-serif",
+                      }}
+                    >
+                      {cat.name}
+                    </span>
+                    {cat.budget > 0 && (
+                      <span style={{ fontSize: 11, color: "#444" }}>
+                        ${cat.budget}/mo
+                      </span>
+                    )}
+                  </button>
                 ))}
-              </select>
-            </Field>
-            <Field label="Date">
-              <input
-                type="date"
-                value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-                style={m.input}
-              />
-            </Field>
-          </div>
+                <button
+                  onClick={() => setShowNewBucket(true)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    background: "none",
+                    border: "1px dashed #222",
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <span style={{ fontSize: 18 }}>+</span>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      color: "#444",
+                      fontFamily: "Inter, sans-serif",
+                    }}
+                  >
+                    New bucket
+                  </span>
+                </button>
+              </div>
+            )}
+          </Field>
 
           <Field label="Note (optional)">
             <input
@@ -423,93 +742,19 @@ export default function AddModal({
             />
           </Field>
 
-          {/* Bucket suggestion */}
-          {buckets.length > 0 && (
-            <Field label="Bucket">
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {/* No bucket option */}
-                <button
-                  onClick={() => setSelectedBucket(null)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    background: !selectedBucket ? "#F9731615" : "#111",
-                    border: `1px solid ${!selectedBucket ? "#F97316" : "#1A1A1A"}`,
-                    borderRadius: 10,
-                    padding: "10px 12px",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>🚫</span>
-                  <span
-                    style={{
-                      fontSize: 13,
-                      color: !selectedBucket ? "#fff" : "#555",
-                      fontFamily: "Inter, sans-serif",
-                    }}
-                  >
-                    No bucket
-                  </span>
-                </button>
-                {buckets.map((b) => {
-                  const isSuggested = suggestedBucket?.id === b.id;
-                  const isSelected = selectedBucket?.id === b.id;
-                  return (
-                    <button
-                      key={b.id}
-                      onClick={() => setSelectedBucket(b)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        background: isSelected ? "#F9731615" : "#111",
-                        border: `1px solid ${isSelected ? "#F97316" : "#1A1A1A"}`,
-                        borderRadius: 10,
-                        padding: "10px 12px",
-                        cursor: "pointer",
-                        textAlign: "left",
-                      }}
-                    >
-                      <span style={{ fontSize: 16 }}>{b.icon}</span>
-                      <span
-                        style={{
-                          flex: 1,
-                          fontSize: 13,
-                          color: isSelected ? "#fff" : "#888",
-                          fontFamily: "Inter, sans-serif",
-                        }}
-                      >
-                        {b.name}
-                      </span>
-                      {isSuggested && (
-                        <span
-                          style={{
-                            fontSize: 10,
-                            color: "#F97316",
-                            background: "#F9731620",
-                            padding: "2px 6px",
-                            borderRadius: 6,
-                            fontWeight: 600,
-                          }}
-                        >
-                          Suggested
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </Field>
-          )}
-
           {error && <div style={m.error}>{error}</div>}
           <button onClick={save} disabled={saving} style={m.saveBtn}>
             {saving ? "Saving..." : "Save expense"}
           </button>
         </div>
       </div>
+
+      {showNewBucket && (
+        <NewBucketModal
+          onSave={handleNewBucket}
+          onClose={() => setShowNewBucket(false)}
+        />
+      )}
     </div>
   );
 }

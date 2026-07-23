@@ -24,7 +24,7 @@ export default function App() {
     return u ? JSON.parse(u) : null;
   });
   const [expenses, setExpenses] = useState([]);
-  const [buckets, setBuckets] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [month, setMonth] = useState(NOW_MONTH);
   const [year, setYear] = useState(NOW_YEAR);
   const [activeTab, setActiveTab] = useState("calendar");
@@ -67,19 +67,19 @@ export default function App() {
 
   const fetchAll = async () => {
     try {
-      const [expRes, bucketsRes] = await Promise.all([
+      const [expRes, catRes] = await Promise.all([
         axios.get(`${API}/expenses`),
-        axios.get(`${API}/buckets`),
+        axios.get(`${API}/categories`),
       ]);
       setExpenses(expRes.data);
-      setBuckets(bucketsRes.data.buckets || []);
+      setCategories(catRes.data.categories || []);
     } catch {}
   };
 
-  const saveBuckets = async (newBuckets) => {
+  const saveCategories = async (newCats) => {
     try {
-      await axios.put(`${API}/buckets`, { buckets: newBuckets });
-      setBuckets(newBuckets);
+      await axios.put(`${API}/categories`, { categories: newCats });
+      setCategories(newCats);
     } catch {}
   };
 
@@ -96,7 +96,7 @@ export default function App() {
     delete axios.defaults.headers.common["Authorization"];
     setUser(null);
     setExpenses([]);
-    setBuckets([]);
+    setCategories([]);
   };
 
   const deleteExp = async (id) => {
@@ -169,8 +169,8 @@ export default function App() {
     (s, e) => s + parseFloat(e.amount),
     0,
   );
-  const totalBudget = buckets.reduce(
-    (s, b) => s + parseFloat(b.amount || 0),
+  const totalBudget = categories.reduce(
+    (s, c) => s + parseFloat(c.budget || 0),
     0,
   );
 
@@ -421,14 +421,14 @@ export default function App() {
           expenses={monthExpenses}
           total={totalSpent}
           budget={totalBudget}
-          buckets={buckets}
+          categories={categories}
           insights={insights}
           loadingInsights={loadingInsights}
           onRefresh={getInsights}
           month={month}
           year={year}
           onMonthChange={handleOverviewMonthChange}
-          onSaveBuckets={saveBuckets}
+          onSaveCategories={saveCategories}
           setToast={setToast}
         />
       )}
@@ -521,7 +521,8 @@ export default function App() {
           onSaved={fetchAll}
           setToast={setToast}
           initialFile={galleryFile}
-          buckets={buckets}
+          categories={categories}
+          onSaveCategories={saveCategories}
         />
       )}
       {showSearch && (
@@ -529,6 +530,7 @@ export default function App() {
           expenses={expenses}
           onClose={() => setShowSearch(false)}
           onSelectDay={handleSelectDay}
+          categories={categories}
         />
       )}
       {daySheet && (
@@ -542,6 +544,7 @@ export default function App() {
           onDelete={deleteExp}
           onSaved={fetchAll}
           setToast={setToast}
+          categories={categories}
         />
       )}
       {toast && <Toast msg={toast} onDone={() => setToast(null)} />}
