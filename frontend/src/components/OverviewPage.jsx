@@ -175,178 +175,197 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
         position: "fixed",
         inset: 0,
         zIndex: 1000,
-        background: "rgba(0,0,0,0.85)",
-        backdropFilter: "blur(8px)",
+        background: "#000",
         display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
+        flexDirection: "column",
+        fontFamily: "Inter, sans-serif",
+        animation: "slideUp 0.25s ease",
         touchAction: "none",
       }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
+      {/* Header */}
       <div
         style={{
-          background: "#0A0A0A",
-          borderRadius: "20px 20px 0 0",
-          width: "100%",
-          maxWidth: 480,
-          border: "1px solid #1A1A1A",
-          borderBottom: "none",
-          animation: "slideUp 0.25s ease",
-          paddingBottom: 40,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "52px 20px 16px",
+          borderBottom: "1px solid #111",
+          flexShrink: 0,
         }}
       >
-        <div
+        <button
+          onClick={onClose}
           style={{
-            width: 36,
-            height: 4,
-            background: "#222",
-            borderRadius: 2,
-            margin: "12px auto",
+            background: "none",
+            border: "none",
+            color: "#555",
+            fontSize: 14,
+            cursor: "pointer",
+            fontFamily: "Inter, sans-serif",
           }}
-        />
+        >
+          Cancel
+        </button>
+        <span style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>
+          New bucket
+        </span>
+        <button
+          onClick={save}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#F97316",
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "Inter, sans-serif",
+          }}
+        >
+          Add
+        </button>
+      </div>
+
+      {/* Scrollable content */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "24px 20px 48px",
+          touchAction: "pan-y",
+        }}
+      >
+        {/* Amount first */}
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#444",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            marginBottom: 12,
+          }}
+        >
+          Monthly limit
+        </p>
         <div
           style={{
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
-            padding: "8px 20px 16px",
-            borderBottom: "1px solid #1A1A1A",
+            gap: 4,
+            marginBottom: 32,
+            paddingBottom: 20,
+            borderBottom: "1px solid #111",
           }}
         >
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#555",
-              fontSize: 14,
-              cursor: "pointer",
-              fontFamily: "Inter, sans-serif",
-            }}
-          >
-            Cancel
-          </button>
-          <span style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>
-            New bucket
+          <span style={{ fontSize: 30, fontWeight: 300, color: "#333" }}>
+            $
           </span>
-          <button
-            onClick={save}
+          <input
+            type="number"
+            placeholder="0"
+            autoFocus
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
             style={{
-              background: "none",
-              border: "none",
-              color: "#F97316",
-              fontSize: 14,
+              flex: 1,
+              fontSize: 38,
               fontWeight: 700,
-              cursor: "pointer",
+              color: "#fff",
+              border: "none",
+              outline: "none",
+              background: "none",
               fontFamily: "Inter, sans-serif",
             }}
-          >
-            Add
-          </button>
+          />
         </div>
 
-        <div style={{ padding: "20px 20px 0" }}>
-          {/* Category picker */}
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#444",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              marginBottom: 12,
-            }}
-          >
-            Category
-          </p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 8,
-              marginBottom: 24,
-            }}
-          >
-            {available.map((cat) => {
-              const config = getCat(cat);
-              const selected = selectedCat === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCat(cat)}
+        {/* Category picker */}
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#444",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            marginBottom: 12,
+          }}
+        >
+          Category
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 8,
+          }}
+        >
+          {available.map((cat) => {
+            const config = getCat(cat);
+            const selected = selectedCat === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCat(cat)}
+                style={{
+                  background: selected ? `${config.color}20` : "#0A0A0A",
+                  border: `1.5px solid ${selected ? config.color : "#1A1A1A"}`,
+                  borderRadius: 12,
+                  padding: "14px 8px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 8,
+                  cursor: "pointer",
+                }}
+              >
+                <span style={{ fontSize: 26 }}>{config.icon}</span>
+                <span
                   style={{
-                    background: selected ? `${config.color}20` : "#111",
-                    border: `1.5px solid ${selected ? config.color : "#1A1A1A"}`,
-                    borderRadius: 12,
-                    padding: "12px 8px",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 6,
-                    cursor: "pointer",
+                    fontSize: 11,
+                    color: selected ? "#fff" : "#555",
+                    textTransform: "capitalize",
+                    fontFamily: "Inter, sans-serif",
                   }}
                 >
-                  <span style={{ fontSize: 24 }}>{config.icon}</span>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      color: selected ? "#fff" : "#555",
-                      textTransform: "capitalize",
-                      fontFamily: "Inter, sans-serif",
-                    }}
-                  >
-                    {cat}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Amount */}
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#444",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              marginBottom: 12,
-            }}
-          >
-            Monthly limit
-          </p>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              borderBottom: "1px solid #1A1A1A",
-              paddingBottom: 16,
-            }}
-          >
-            <span style={{ fontSize: 30, fontWeight: 300, color: "#333" }}>
-              $
-            </span>
-            <input
-              type="number"
-              placeholder="0"
-              autoFocus
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              style={{
-                flex: 1,
-                fontSize: 38,
-                fontWeight: 700,
-                color: "#fff",
-                border: "none",
-                outline: "none",
-                background: "none",
-                fontFamily: "Inter, sans-serif",
-              }}
-            />
-          </div>
+                  {cat}
+                </span>
+              </button>
+            );
+          })}
         </div>
+      </div>
+
+      {/* Save button */}
+      <div
+        style={{
+          padding: "12px 20px 36px",
+          borderTop: "1px solid #111",
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={save}
+          disabled={!selectedCat || !amount}
+          style={{
+            width: "100%",
+            padding: "16px",
+            background:
+              selectedCat && amount
+                ? "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)"
+                : "#111",
+            border: "none",
+            borderRadius: 14,
+            color: selectedCat && amount ? "#fff" : "#333",
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "Inter, sans-serif",
+            transition: "all 0.2s",
+          }}
+        >
+          {selectedCat ? `Add ${selectedCat} bucket` : "Select a category"}
+        </button>
       </div>
     </div>
   );
