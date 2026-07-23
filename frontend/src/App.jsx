@@ -12,7 +12,6 @@ import AuthScreen from "./components/AuthScreen";
 import Toast from "./components/Toast";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
-
 const NOW_MONTH = new Date().getMonth();
 const NOW_YEAR = new Date().getFullYear();
 
@@ -25,7 +24,7 @@ export default function App() {
     return u ? JSON.parse(u) : null;
   });
   const [expenses, setExpenses] = useState([]);
-  const [catBudgets, setCatBudgets] = useState({});
+  const [buckets, setBuckets] = useState([]);
   const [month, setMonth] = useState(NOW_MONTH);
   const [year, setYear] = useState(NOW_YEAR);
   const [activeTab, setActiveTab] = useState("calendar");
@@ -68,19 +67,19 @@ export default function App() {
 
   const fetchAll = async () => {
     try {
-      const [expRes, catBudRes] = await Promise.all([
+      const [expRes, bucketsRes] = await Promise.all([
         axios.get(`${API}/expenses`),
-        axios.get(`${API}/category-budgets`),
+        axios.get(`${API}/buckets`),
       ]);
       setExpenses(expRes.data);
-      setCatBudgets(catBudRes.data.budgets || {});
+      setBuckets(bucketsRes.data.buckets || []);
     } catch {}
   };
 
-  const saveCatBudgets = async (newBudgets) => {
+  const saveBuckets = async (newBuckets) => {
     try {
-      await axios.put(`${API}/category-budgets`, { budgets: newBudgets });
-      setCatBudgets(newBudgets);
+      await axios.put(`${API}/buckets`, { buckets: newBuckets });
+      setBuckets(newBuckets);
     } catch {}
   };
 
@@ -97,7 +96,7 @@ export default function App() {
     delete axios.defaults.headers.common["Authorization"];
     setUser(null);
     setExpenses([]);
-    setCatBudgets({});
+    setBuckets([]);
   };
 
   const deleteExp = async (id) => {
@@ -170,11 +169,10 @@ export default function App() {
     (s, e) => s + parseFloat(e.amount),
     0,
   );
-
-  // Total budget = sum of all buckets
-  const totalBudget = Object.values(catBudgets)
-    .filter((v) => v && v !== "")
-    .reduce((s, v) => s + parseFloat(v), 0);
+  const totalBudget = buckets.reduce(
+    (s, b) => s + parseFloat(b.amount || 0),
+    0,
+  );
 
   const getMonthRingStyle = (i) => {
     const isActive = i === month;
@@ -205,7 +203,6 @@ export default function App() {
         .month-strip { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* Calendar Tab */}
       {activeTab === "calendar" && (
         <div style={s.container}>
           <div style={s.header}>
@@ -419,25 +416,23 @@ export default function App() {
         </div>
       )}
 
-      {/* Overview Tab */}
       {activeTab === "overview" && (
         <OverviewPage
           expenses={monthExpenses}
           total={totalSpent}
           budget={totalBudget}
-          catBudgets={catBudgets}
+          buckets={buckets}
           insights={insights}
           loadingInsights={loadingInsights}
           onRefresh={getInsights}
           month={month}
           year={year}
           onMonthChange={handleOverviewMonthChange}
-          onSaveBudgets={saveCatBudgets}
+          onSaveBuckets={saveBuckets}
           setToast={setToast}
         />
       )}
 
-      {/* Bottom tab bar */}
       <div style={s.bottomBar}>
         <button style={s.tabBtn} onClick={() => setActiveTab("calendar")}>
           <svg
@@ -526,6 +521,7 @@ export default function App() {
           onSaved={fetchAll}
           setToast={setToast}
           initialFile={galleryFile}
+          buckets={buckets}
         />
       )}
       {showSearch && (

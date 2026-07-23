@@ -27,7 +27,13 @@ function Field({ label, children }) {
   );
 }
 
-export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
+export default function AddModal({
+  onClose,
+  onSaved,
+  setToast,
+  initialFile,
+  buckets = [],
+}) {
   const [step, setStep] = useState(initialFile ? "deciding" : "preview");
   const [photo, setPhoto] = useState(initialFile || null);
   const [preview, setPreview] = useState(
@@ -42,7 +48,14 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
     note: "",
     date: today(),
   });
+  const [suggestedBucket, setSuggestedBucket] = useState(null);
+  const [selectedBucket, setSelectedBucket] = useState(null);
   const cameraRef = useRef();
+
+  const findSuggestedBucket = (category) => {
+    const match = buckets.find((b) => b.category === category);
+    return match || null;
+  };
 
   const handleFile = (file) => {
     if (!file) {
@@ -68,6 +81,9 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
         category: e.category,
         date: e.date,
       }));
+      const suggested = findSuggestedBucket(e.category);
+      setSuggestedBucket(suggested);
+      setSelectedBucket(suggested);
     } catch {
       setError("Could not read receipt. Fill in manually.");
     }
@@ -75,6 +91,13 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
   };
 
   const handleManual = () => setStep("form");
+
+  const handleCategoryChange = (cat) => {
+    setForm((f) => ({ ...f, category: cat }));
+    const suggested = findSuggestedBucket(cat);
+    setSuggestedBucket(suggested);
+    setSelectedBucket(suggested);
+  };
 
   const save = async () => {
     if (!form.amount || isNaN(parseFloat(form.amount))) {
@@ -153,8 +176,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               right: 0,
               background: "linear-gradient(rgba(0,0,0,0.5),transparent)",
               padding: "52px 20px 30px",
-              display: "flex",
-              justifyContent: "space-between",
             }}
           >
             <button
@@ -168,7 +189,6 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: "pointer",
-                backdropFilter: "blur(12px)",
               }}
             >
               ✕
@@ -344,6 +364,7 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               />
             </div>
           )}
+
           <div style={m.amountRow}>
             <span style={m.dollarSign}>$</span>
             <input
@@ -355,6 +376,7 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               style={m.amountInput}
             />
           </div>
+
           <Field label="Where">
             <input
               type="text"
@@ -364,13 +386,14 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               style={m.input}
             />
           </Field>
+
           <div
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
           >
             <Field label="Category">
               <select
                 value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 style={m.input}
               >
                 {CATEGORIES.map((c) => (
@@ -389,6 +412,7 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               />
             </Field>
           </div>
+
           <Field label="Note (optional)">
             <input
               type="text"
@@ -398,6 +422,88 @@ export default function AddModal({ onClose, onSaved, setToast, initialFile }) {
               style={m.input}
             />
           </Field>
+
+          {/* Bucket suggestion */}
+          {buckets.length > 0 && (
+            <Field label="Bucket">
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {/* No bucket option */}
+                <button
+                  onClick={() => setSelectedBucket(null)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    background: !selectedBucket ? "#F9731615" : "#111",
+                    border: `1px solid ${!selectedBucket ? "#F97316" : "#1A1A1A"}`,
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>🚫</span>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      color: !selectedBucket ? "#fff" : "#555",
+                      fontFamily: "Inter, sans-serif",
+                    }}
+                  >
+                    No bucket
+                  </span>
+                </button>
+                {buckets.map((b) => {
+                  const isSuggested = suggestedBucket?.id === b.id;
+                  const isSelected = selectedBucket?.id === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      onClick={() => setSelectedBucket(b)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        background: isSelected ? "#F9731615" : "#111",
+                        border: `1px solid ${isSelected ? "#F97316" : "#1A1A1A"}`,
+                        borderRadius: 10,
+                        padding: "10px 12px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      <span style={{ fontSize: 16 }}>{b.icon}</span>
+                      <span
+                        style={{
+                          flex: 1,
+                          fontSize: 13,
+                          color: isSelected ? "#fff" : "#888",
+                          fontFamily: "Inter, sans-serif",
+                        }}
+                      >
+                        {b.name}
+                      </span>
+                      {isSuggested && (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            color: "#F97316",
+                            background: "#F9731620",
+                            padding: "2px 6px",
+                            borderRadius: 6,
+                            fontWeight: 600,
+                          }}
+                        >
+                          Suggested
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+          )}
+
           {error && <div style={m.error}>{error}</div>}
           <button onClick={save} disabled={saving} style={m.saveBtn}>
             {saving ? "Saving..." : "Save expense"}

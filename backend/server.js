@@ -311,6 +311,35 @@ app.get("/insights", auth, async (req, res) => {
   }
 });
 
+// Get buckets
+app.get("/buckets", auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT value FROM settings WHERE key = 'buckets' AND user_id = $1",
+      [req.user.id],
+    );
+    const raw = result.rows[0]?.value;
+    res.json({ buckets: raw ? JSON.parse(raw) : [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Save buckets
+app.put("/buckets", auth, async (req, res) => {
+  try {
+    const { buckets } = req.body;
+    await pool.query(
+      `INSERT INTO settings (key, value, user_id) VALUES ('buckets', $1, $2)
+       ON CONFLICT (key, user_id) DO UPDATE SET value = $1`,
+      [JSON.stringify(buckets), req.user.id],
+    );
+    res.json({ buckets });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 3001, () =>
   console.log(`Snapspend API on port ${process.env.PORT || 3001}`),
 );

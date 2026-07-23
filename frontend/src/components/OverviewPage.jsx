@@ -2,6 +2,39 @@ import { useState } from "react";
 import { getCat, fmt } from "../utils";
 import { MONTHS, CATEGORIES } from "../constants";
 
+const ICONS = [
+  "🏠",
+  "🚗",
+  "🛒",
+  "🍽️",
+  "🧋",
+  "🛍️",
+  "🎬",
+  "💊",
+  "🛡️",
+  "📚",
+  "✈️",
+  "🐾",
+  "👶",
+  "💪",
+  "🎮",
+  "🎵",
+  "💈",
+  "🧴",
+  "⚡",
+  "📱",
+  "🏋️",
+  "🌿",
+  "🎁",
+  "💻",
+  "🏥",
+  "🍕",
+  "☕",
+  "🚌",
+  "🎓",
+  "💰",
+];
+
 function GaugeChart({ pct, over, spent, budget }) {
   const clampedPct = Math.min(pct, 100);
   const circumference = Math.PI * 90;
@@ -112,7 +145,6 @@ function GaugeChart({ pct, over, spent, budget }) {
           )}
         </div>
       </div>
-
       <div
         style={{
           display: "flex",
@@ -155,17 +187,21 @@ function GaugeChart({ pct, over, spent, budget }) {
   );
 }
 
-function AddBucketModal({ catBudgets, onSave, onClose }) {
-  const [selectedCat, setSelectedCat] = useState("");
+function AddBucketModal({ onSave, onClose }) {
+  const [name, setName] = useState("");
+  const [selectedIcon, setSelectedIcon] = useState("💰");
   const [amount, setAmount] = useState("");
-
-  const available = CATEGORIES.filter(
-    (c) => !catBudgets[c] || catBudgets[c] === "",
-  );
+  const [selectedCat, setSelectedCat] = useState("other");
 
   const save = () => {
-    if (!selectedCat || !amount || isNaN(parseFloat(amount))) return;
-    onSave(selectedCat, amount);
+    if (!name.trim() || !amount || isNaN(parseFloat(amount))) return;
+    onSave({
+      id: Date.now().toString(),
+      name: name.trim(),
+      icon: selectedIcon,
+      category: selectedCat,
+      amount: parseFloat(amount),
+    });
     onClose();
   };
 
@@ -183,7 +219,6 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
         touchAction: "none",
       }}
     >
-      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -226,7 +261,6 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
         </button>
       </div>
 
-      {/* Scrollable content */}
       <div
         style={{
           flex: 1,
@@ -235,7 +269,7 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
           touchAction: "pan-y",
         }}
       >
-        {/* Amount first */}
+        {/* Amount */}
         <p
           style={{
             fontSize: 11,
@@ -253,7 +287,7 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
             display: "flex",
             alignItems: "center",
             gap: 4,
-            marginBottom: 32,
+            marginBottom: 28,
             paddingBottom: 20,
             borderBottom: "1px solid #111",
           }}
@@ -280,7 +314,7 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
           />
         </div>
 
-        {/* Category picker */}
+        {/* Name */}
         <p
           style={{
             fontSize: 11,
@@ -291,7 +325,85 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
             marginBottom: 12,
           }}
         >
-          Category
+          Name
+        </p>
+        <input
+          type="text"
+          placeholder="e.g. Rent - House 1"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{
+            width: "100%",
+            background: "#0A0A0A",
+            border: "1px solid #1A1A1A",
+            borderRadius: 12,
+            padding: "14px 16px",
+            fontSize: 15,
+            color: "#fff",
+            outline: "none",
+            fontFamily: "Inter, sans-serif",
+            marginBottom: 28,
+            boxSizing: "border-box",
+          }}
+        />
+
+        {/* Icon picker */}
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#444",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            marginBottom: 12,
+          }}
+        >
+          Icon
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(6, 1fr)",
+            gap: 8,
+            marginBottom: 28,
+          }}
+        >
+          {ICONS.map((icon) => (
+            <button
+              key={icon}
+              onClick={() => setSelectedIcon(icon)}
+              style={{
+                background: selectedIcon === icon ? "#F9731620" : "#0A0A0A",
+                border: `1.5px solid ${selectedIcon === icon ? "#F97316" : "#1A1A1A"}`,
+                borderRadius: 12,
+                padding: "10px 0",
+                fontSize: 22,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {icon}
+            </button>
+          ))}
+        </div>
+
+        {/* Category — for expense matching */}
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#444",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            marginBottom: 8,
+          }}
+        >
+          Match expenses from
+        </p>
+        <p style={{ fontSize: 12, color: "#333", marginBottom: 12 }}>
+          Expenses in this category will count toward this bucket.
         </p>
         <div
           style={{
@@ -300,7 +412,7 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
             gap: 8,
           }}
         >
-          {available.map((cat) => {
+          {CATEGORIES.map((cat) => {
             const config = getCat(cat);
             const selected = selectedCat === cat;
             return (
@@ -311,15 +423,15 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
                   background: selected ? `${config.color}20` : "#0A0A0A",
                   border: `1.5px solid ${selected ? config.color : "#1A1A1A"}`,
                   borderRadius: 12,
-                  padding: "14px 8px",
+                  padding: "12px 8px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: 8,
+                  gap: 6,
                   cursor: "pointer",
                 }}
               >
-                <span style={{ fontSize: 26 }}>{config.icon}</span>
+                <span style={{ fontSize: 22 }}>{config.icon}</span>
                 <span
                   style={{
                     fontSize: 11,
@@ -336,7 +448,6 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
         </div>
       </div>
 
-      {/* Save button */}
       <div
         style={{
           padding: "12px 20px 36px",
@@ -346,37 +457,36 @@ function AddBucketModal({ catBudgets, onSave, onClose }) {
       >
         <button
           onClick={save}
-          disabled={!selectedCat || !amount}
+          disabled={!name.trim() || !amount}
           style={{
             width: "100%",
             padding: "16px",
             background:
-              selectedCat && amount
+              name.trim() && amount
                 ? "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)"
                 : "#111",
             border: "none",
             borderRadius: 14,
-            color: selectedCat && amount ? "#fff" : "#333",
+            color: name.trim() && amount ? "#fff" : "#333",
             fontSize: 15,
             fontWeight: 700,
             cursor: "pointer",
             fontFamily: "Inter, sans-serif",
-            transition: "all 0.2s",
           }}
         >
-          {selectedCat ? `Add ${selectedCat} bucket` : "Select a category"}
+          {name.trim() ? `Add "${name}" bucket` : "Enter a name"}
         </button>
       </div>
     </div>
   );
 }
 
-function BucketCard({ cat, amount, catBudgets, onEdit, onDelete }) {
-  const config = getCat(cat);
-  const catBudget = parseFloat(catBudgets[cat]);
-  const budgetPct = Math.min((amount / catBudget) * 100, 100);
-  const over = amount > catBudget;
-  const remaining = catBudget - amount;
+function BucketCard({ bucket, spent, onDelete }) {
+  const budgetAmt = parseFloat(bucket.amount);
+  const budgetPct = Math.min((spent / budgetAmt) * 100, 100);
+  const over = spent > budgetAmt;
+  const remaining = budgetAmt - spent;
+  const config = getCat(bucket.category || "other");
 
   return (
     <div
@@ -402,18 +512,11 @@ function BucketCard({ cat, amount, catBudgets, onEdit, onDelete }) {
             flexShrink: 0,
           }}
         >
-          {config.icon}
+          {bucket.icon}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p
-            style={{
-              fontSize: 15,
-              color: "#fff",
-              fontWeight: 600,
-              textTransform: "capitalize",
-            }}
-          >
-            {cat}
+          <p style={{ fontSize: 15, color: "#fff", fontWeight: 600 }}>
+            {bucket.name}
           </p>
           <p style={{ fontSize: 12, marginTop: 2 }}>
             {over ? (
@@ -435,20 +538,20 @@ function BucketCard({ cat, amount, catBudgets, onEdit, onDelete }) {
               color: over ? "#EF4444" : "#fff",
             }}
           >
-            {fmt(amount)}
+            {fmt(spent)}
           </p>
           <p style={{ fontSize: 11, color: "#333", marginTop: 2 }}>
-            / {fmt(catBudget)}
+            / {fmt(budgetAmt)}
           </p>
         </div>
         <button
-          onClick={() => onDelete(cat)}
+          onClick={() => onDelete(bucket.id)}
           style={{
             background: "none",
             border: "none",
             color: "#333",
             cursor: "pointer",
-            fontSize: 18,
+            fontSize: 20,
             padding: "0 0 0 8px",
             flexShrink: 0,
           }}
@@ -487,50 +590,38 @@ export default function OverviewPage({
   expenses,
   total,
   budget,
-  catBudgets,
+  buckets,
   insights,
   loadingInsights,
   onRefresh,
   month,
   year,
   onMonthChange,
-  onSaveBudgets,
+  onSaveBuckets,
   setToast,
 }) {
   const [showAddBucket, setShowAddBucket] = useState(false);
   const budgetPct = budget > 0 ? (total / budget) * 100 : 0;
   const over = total > budget;
 
+  // Calculate spent per category
   const byCategory = expenses.reduce((acc, e) => {
     const cat = e.category || "other";
     acc[cat] = (acc[cat] || 0) + parseFloat(e.amount);
     return acc;
   }, {});
 
-  const buckets = Object.entries(catBudgets || {})
-    .filter(([, val]) => val && val !== "")
-    .sort((a, b) => {
-      const pctA = (byCategory[a[0]] || 0) / parseFloat(a[1]);
-      const pctB = (byCategory[b[0]] || 0) / parseFloat(b[1]);
-      return pctB - pctA;
-    });
-
-  const handleAddBucket = (cat, amount) => {
-    const newBudgets = { ...catBudgets, [cat]: amount };
-    onSaveBudgets(newBudgets);
+  const handleAddBucket = (bucket) => {
+    const newBuckets = [...buckets, bucket];
+    onSaveBuckets(newBuckets);
     setToast("Bucket added");
   };
 
-  const handleDeleteBucket = (cat) => {
-    const newBudgets = { ...catBudgets };
-    delete newBudgets[cat];
-    onSaveBudgets(newBudgets);
+  const handleDeleteBucket = (id) => {
+    const newBuckets = buckets.filter((b) => b.id !== id);
+    onSaveBuckets(newBuckets);
     setToast("Bucket removed");
   };
-
-  const availableToAdd = CATEGORIES.filter(
-    (c) => !catBudgets[c] || catBudgets[c] === "",
-  );
 
   return (
     <div
@@ -650,26 +741,24 @@ export default function OverviewPage({
               letterSpacing: "0.08em",
             }}
           >
-            Budgets
+            Buckets
           </p>
-          {availableToAdd.length > 0 && (
-            <button
-              onClick={() => setShowAddBucket(true)}
-              style={{
-                background: "linear-gradient(135deg,#F97316,#EC4899)",
-                border: "none",
-                borderRadius: 20,
-                padding: "5px 14px",
-                color: "#fff",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: "Inter, sans-serif",
-              }}
-            >
-              + Add bucket
-            </button>
-          )}
+          <button
+            onClick={() => setShowAddBucket(true)}
+            style={{
+              background: "linear-gradient(135deg,#F97316,#EC4899)",
+              border: "none",
+              borderRadius: 20,
+              padding: "5px 14px",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            + Add bucket
+          </button>
         </div>
 
         {/* Bucket list */}
@@ -692,10 +781,10 @@ export default function OverviewPage({
                 marginBottom: 6,
               }}
             >
-              No budgets yet
+              No buckets yet
             </p>
             <p style={{ fontSize: 13, color: "#333", marginBottom: 20 }}>
-              Add a bucket to start tracking your spending by category
+              Create buckets to track spending by category
             </p>
             <button
               onClick={() => setShowAddBucket(true)}
@@ -716,12 +805,11 @@ export default function OverviewPage({
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {buckets.map(([cat]) => (
+            {buckets.map((bucket) => (
               <BucketCard
-                key={cat}
-                cat={cat}
-                amount={byCategory[cat] || 0}
-                catBudgets={catBudgets}
+                key={bucket.id}
+                bucket={bucket}
+                spent={byCategory[bucket.category] || 0}
                 onDelete={handleDeleteBucket}
               />
             ))}
@@ -814,7 +902,6 @@ export default function OverviewPage({
 
       {showAddBucket && (
         <AddBucketModal
-          catBudgets={catBudgets}
           onSave={handleAddBucket}
           onClose={() => setShowAddBucket(false)}
         />
