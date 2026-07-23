@@ -226,56 +226,29 @@ app.delete("/expenses/:id", auth, async (req, res) => {
   }
 });
 
-// ── Budget ─────────────────────────────────────────────────────────────────────
-app.get("/budget", auth, async (req, res) => {
+// ── Categories ─────────────────────────────────────────────────────────────────
+app.get("/categories", auth, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT value FROM settings WHERE key = 'monthly_budget' AND user_id = $1",
-      [req.user.id],
-    );
-    res.json({ budget: result.rows[0]?.value || 500 });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.put("/budget", auth, async (req, res) => {
-  try {
-    const { budget } = req.body;
-    await pool.query(
-      `INSERT INTO settings (key, value, user_id) VALUES ('monthly_budget', $1, $2)
-       ON CONFLICT (key, user_id) DO UPDATE SET value = $1`,
-      [budget, req.user.id],
-    );
-    res.json({ budget });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ── Category budgets ───────────────────────────────────────────────────────────
-app.get("/category-budgets", auth, async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT value FROM settings WHERE key = 'category_budgets' AND user_id = $1",
+      "SELECT value FROM settings WHERE key = 'categories' AND user_id = $1",
       [req.user.id],
     );
     const raw = result.rows[0]?.value;
-    res.json({ budgets: raw ? JSON.parse(raw) : {} });
+    res.json({ categories: raw ? JSON.parse(raw) : [] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put("/category-budgets", auth, async (req, res) => {
+app.put("/categories", auth, async (req, res) => {
   try {
-    const { budgets } = req.body;
+    const { categories } = req.body;
     await pool.query(
-      `INSERT INTO settings (key, value, user_id) VALUES ('category_budgets', $1, $2)
+      `INSERT INTO settings (key, value, user_id) VALUES ('categories', $1, $2)
        ON CONFLICT (key, user_id) DO UPDATE SET value = $1`,
-      [JSON.stringify(budgets), req.user.id],
+      [JSON.stringify(categories), req.user.id],
     );
-    res.json({ budgets });
+    res.json({ categories });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -306,35 +279,6 @@ app.get("/insights", auth, async (req, res) => {
       ],
     });
     res.json({ insights: msg.content[0].text });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Get buckets
-app.get("/buckets", auth, async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT value FROM settings WHERE key = 'buckets' AND user_id = $1",
-      [req.user.id],
-    );
-    const raw = result.rows[0]?.value;
-    res.json({ buckets: raw ? JSON.parse(raw) : [] });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Save buckets
-app.put("/buckets", auth, async (req, res) => {
-  try {
-    const { buckets } = req.body;
-    await pool.query(
-      `INSERT INTO settings (key, value, user_id) VALUES ('buckets', $1, $2)
-       ON CONFLICT (key, user_id) DO UPDATE SET value = $1`,
-      [JSON.stringify(buckets), req.user.id],
-    );
-    res.json({ buckets });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -191,7 +191,49 @@ function AddBucketModal({ onSave, onClose }) {
   const [name, setName] = useState("");
   const [selectedIcon, setSelectedIcon] = useState("💰");
   const [amount, setAmount] = useState("");
-  const [selectedCat, setSelectedCat] = useState("other");
+
+  const ICONS = [
+    "🏠",
+    "🚗",
+    "🛒",
+    "🍽️",
+    "🧋",
+    "🛍️",
+    "🎬",
+    "💊",
+    "🛡️",
+    "📚",
+    "✈️",
+    "🐾",
+    "👶",
+    "💪",
+    "🎮",
+    "🎵",
+    "💈",
+    "🧴",
+    "⚡",
+    "📱",
+    "🏋️",
+    "🌿",
+    "🎁",
+    "💻",
+    "🏥",
+    "🍕",
+    "☕",
+    "🚌",
+    "🎓",
+    "💰",
+    "🐶",
+    "🎨",
+    "⚽",
+    "🏖️",
+    "🍜",
+    "🥗",
+    "🎪",
+    "🏦",
+    "💡",
+    "🔧",
+  ];
 
   const save = () => {
     if (!name.trim() || !amount || isNaN(parseFloat(amount))) return;
@@ -199,7 +241,6 @@ function AddBucketModal({ onSave, onClose }) {
       id: Date.now().toString(),
       name: name.trim(),
       icon: selectedIcon,
-      category: selectedCat,
       amount: parseFloat(amount),
     });
     onClose();
@@ -329,7 +370,7 @@ function AddBucketModal({ onSave, onClose }) {
         </p>
         <input
           type="text"
-          placeholder="e.g. Rent - House 1"
+          placeholder="e.g. Rent, Groceries, Savings..."
           value={name}
           onChange={(e) => setName(e.target.value)}
           style={{
@@ -365,7 +406,6 @@ function AddBucketModal({ onSave, onClose }) {
             display: "grid",
             gridTemplateColumns: "repeat(6, 1fr)",
             gap: 8,
-            marginBottom: 28,
           }}
         >
           {ICONS.map((icon) => (
@@ -387,64 +427,6 @@ function AddBucketModal({ onSave, onClose }) {
               {icon}
             </button>
           ))}
-        </div>
-
-        {/* Category — for expense matching */}
-        <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#444",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            marginBottom: 8,
-          }}
-        >
-          Match expenses from
-        </p>
-        <p style={{ fontSize: 12, color: "#333", marginBottom: 12 }}>
-          Expenses in this category will count toward this bucket.
-        </p>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 8,
-          }}
-        >
-          {CATEGORIES.map((cat) => {
-            const config = getCat(cat);
-            const selected = selectedCat === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => setSelectedCat(cat)}
-                style={{
-                  background: selected ? `${config.color}20` : "#0A0A0A",
-                  border: `1.5px solid ${selected ? config.color : "#1A1A1A"}`,
-                  borderRadius: 12,
-                  padding: "12px 8px",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 6,
-                  cursor: "pointer",
-                }}
-              >
-                <span style={{ fontSize: 22 }}>{config.icon}</span>
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: selected ? "#fff" : "#555",
-                    textTransform: "capitalize",
-                    fontFamily: "Inter, sans-serif",
-                  }}
-                >
-                  {cat}
-                </span>
-              </button>
-            );
-          })}
         </div>
       </div>
 
@@ -486,7 +468,6 @@ function BucketCard({ bucket, spent, onDelete }) {
   const budgetPct = Math.min((spent / budgetAmt) * 100, 100);
   const over = spent > budgetAmt;
   const remaining = budgetAmt - spent;
-  const config = getCat(bucket.category || "other");
 
   return (
     <div
@@ -503,8 +484,7 @@ function BucketCard({ bucket, spent, onDelete }) {
             width: 44,
             height: 44,
             borderRadius: "50%",
-            background: `${config.color}25`,
-            border: `1.5px solid ${config.color}40`,
+            background: "#1A1A1A",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -577,7 +557,7 @@ function BucketCard({ bucket, spent, onDelete }) {
               ? "#EF4444"
               : budgetPct > 80
                 ? "#FBBF24"
-                : config.color,
+                : "#F97316",
             transition: "width 0.6s ease",
           }}
         />
