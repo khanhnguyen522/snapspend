@@ -301,6 +301,7 @@ export default function AddModal({
   initialFile,
   categories = [],
   onAddCategory,
+  monthExpenses = [],
 }) {
   const [step, setStep] = useState(initialFile ? "deciding" : "preview");
   const [photo, setPhoto] = useState(initialFile || null);
@@ -318,6 +319,12 @@ export default function AddModal({
     date: today(),
   });
   const cameraRef = useRef();
+
+  const spentByBucket = monthExpenses.reduce((acc, e) => {
+    if (e.category)
+      acc[e.category] = (acc[e.category] || 0) + parseFloat(e.amount);
+    return acc;
+  }, {});
 
   const handleFile = (file) => {
     if (!file) {
@@ -707,11 +714,26 @@ export default function AddModal({
                     >
                       {cat.name}
                     </span>
-                    {cat.budget > 0 && (
-                      <span style={{ fontSize: 11, color: "#444" }}>
-                        ${cat.budget}/mo
-                      </span>
-                    )}
+                    {cat.budget > 0
+                      ? (() => {
+                          const spent = spentByBucket[cat.id] || 0;
+                          const remaining = parseFloat(cat.budget) - spent;
+                          const over = remaining < 0;
+                          return (
+                            <span
+                              style={{
+                                fontSize: 11,
+                                color: over ? "#EF4444" : "#34D399",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {over
+                                ? `$${Math.abs(remaining).toFixed(2)} over`
+                                : `$${remaining.toFixed(2)} left`}
+                            </span>
+                          );
+                        })()
+                      : null}
                   </button>
                 ))}
                 <button

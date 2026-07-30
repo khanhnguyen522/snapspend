@@ -517,6 +517,7 @@ export default function App() {
           initialFile={galleryFile}
           categories={categories}
           onAddCategory={addCategory}
+          monthExpenses={monthExpenses}
         />
       )}
       {showSearch && (
