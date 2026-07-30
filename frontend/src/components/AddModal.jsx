@@ -414,12 +414,21 @@ export default function AddModal({
           position: "fixed",
           inset: 0,
           zIndex: 1000,
-          background: "#000",
+          background: "rgba(0,0,0,0.8)",
+          touchAction: "none",
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "center",
         }}
       >
-        <div style={{ flex: 1, position: "relative" }}>
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: 480,
+            height: "100%",
+            background: "#000",
+          }}
+        >
           <img
             src={preview}
             alt=""
@@ -430,40 +439,43 @@ export default function AddModal({
               display: "block",
             }}
           />
+          {/* Top bar */}
           <div
             style={{
               position: "absolute",
               top: 0,
               left: 0,
               right: 0,
-              background: "linear-gradient(rgba(0,0,0,0.5),transparent)",
-              padding: "52px 20px 30px",
+              background: "linear-gradient(rgba(0,0,0,0.6),transparent)",
+              padding: "52px 20px 40px",
             }}
           >
             <button
               onClick={onClose}
               style={{
                 background: "rgba(0,0,0,0.5)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.15)",
                 borderRadius: 20,
-                padding: "8px 14px",
+                padding: "8px 16px",
                 color: "#fff",
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: "pointer",
+                backdropFilter: "blur(8px)",
               }}
             >
               ✕
             </button>
           </div>
+          {/* Bottom buttons — padded above tab bar */}
           <div
             style={{
               position: "absolute",
               bottom: 0,
               left: 0,
               right: 0,
-              background: "linear-gradient(transparent, rgba(0,0,0,0.95))",
-              padding: "60px 20px 40px",
+              background: "linear-gradient(transparent, rgba(0,0,0,0.97))",
+              padding: "60px 20px 110px",
             }}
           >
             <p
@@ -632,7 +644,7 @@ export default function AddModal({
           <Field label="Where">
             <input
               type="text"
-              placeholder="Gong Cha, 7-Eleven..."
+              placeholder="Walmart, Starbucks..."
               value={form.store_name}
               onChange={(e) => setForm({ ...form, store_name: e.target.value })}
               style={m.input}

@@ -219,204 +219,214 @@ function NewBucketModal({ onSave, onClose }) {
         position: "fixed",
         inset: 0,
         zIndex: 2000,
-        background: "#000",
+        background: "rgba(0,0,0,0.5)",
         display: "flex",
-        flexDirection: "column",
+        justifyContent: "center",
         fontFamily: "Inter, sans-serif",
-        animation: "slideUp 0.2s ease",
         touchAction: "none",
       }}
     >
       <div
         style={{
+          width: "100%",
+          maxWidth: 480,
+          background: "#000",
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "52px 20px 16px",
-          borderBottom: "1px solid #111",
-          flexShrink: 0,
+          flexDirection: "column",
+          animation: "slideUp 0.2s ease",
         }}
       >
-        <button
-          onClick={onClose}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#555",
-            fontSize: 14,
-            cursor: "pointer",
-            fontFamily: "Inter, sans-serif",
-          }}
-        >
-          Cancel
-        </button>
-        <span style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>
-          New bucket
-        </span>
-        <button
-          onClick={save}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#F97316",
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: "pointer",
-            fontFamily: "Inter, sans-serif",
-          }}
-        >
-          Add
-        </button>
-      </div>
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "24px 20px 48px",
-          touchAction: "pan-y",
-        }}
-      >
-        <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#444",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            marginBottom: 12,
-          }}
-        >
-          Name
-        </p>
-        <input
-          type="text"
-          placeholder="e.g. Groceries, Rent, Savings..."
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          autoFocus
-          style={{
-            width: "100%",
-            background: "#0A0A0A",
-            border: "1px solid #1A1A1A",
-            borderRadius: 12,
-            padding: "14px 16px",
-            fontSize: 15,
-            color: "#fff",
-            outline: "none",
-            fontFamily: "Inter, sans-serif",
-            marginBottom: 24,
-            boxSizing: "border-box",
-          }}
-        />
-
-        <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#444",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            marginBottom: 12,
-          }}
-        >
-          Monthly budget (optional)
-        </p>
         <div
           style={{
             display: "flex",
+            justifyContent: "space-between",
             alignItems: "center",
-            gap: 4,
-            marginBottom: 24,
-            paddingBottom: 20,
+            padding: "52px 20px 16px",
             borderBottom: "1px solid #111",
+            flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: 24, color: "#333" }}>$</span>
-          <input
-            type="number"
-            placeholder="0"
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
+          <button
+            onClick={onClose}
             style={{
-              flex: 1,
-              fontSize: 28,
-              fontWeight: 700,
-              color: "#fff",
-              border: "none",
-              outline: "none",
               background: "none",
+              border: "none",
+              color: "#555",
+              fontSize: 14,
+              cursor: "pointer",
               fontFamily: "Inter, sans-serif",
             }}
-          />
+          >
+            Cancel
+          </button>
+          <span style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>
+            New bucket
+          </span>
+          <button
+            onClick={save}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#F97316",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            Add
+          </button>
         </div>
-
-        <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#444",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            marginBottom: 12,
-          }}
-        >
-          Icon
-        </p>
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(6, 1fr)",
-            gap: 8,
+            flex: 1,
+            overflowY: "auto",
+            padding: "24px 20px 48px",
+            touchAction: "pan-y",
           }}
         >
-          {ICONS.map((i) => (
-            <button
-              key={i}
-              onClick={() => setIcon(i)}
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#444",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: 12,
+            }}
+          >
+            Name
+          </p>
+          <input
+            type="text"
+            placeholder="e.g. Groceries, Rent, Savings..."
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+            style={{
+              width: "100%",
+              background: "#0A0A0A",
+              border: "1px solid #1A1A1A",
+              borderRadius: 12,
+              padding: "14px 16px",
+              fontSize: 15,
+              color: "#fff",
+              outline: "none",
+              fontFamily: "Inter, sans-serif",
+              marginBottom: 24,
+              boxSizing: "border-box",
+            }}
+          />
+
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#444",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: 12,
+            }}
+          >
+            Monthly budget (optional)
+          </p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              marginBottom: 24,
+              paddingBottom: 20,
+              borderBottom: "1px solid #111",
+            }}
+          >
+            <span style={{ fontSize: 24, color: "#333" }}>$</span>
+            <input
+              type="number"
+              placeholder="0"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
               style={{
-                background: icon === i ? "#F9731620" : "#0A0A0A",
-                border: `1.5px solid ${icon === i ? "#F97316" : "#1A1A1A"}`,
-                borderRadius: 12,
-                padding: "10px 0",
-                fontSize: 22,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                flex: 1,
+                fontSize: 28,
+                fontWeight: 700,
+                color: "#fff",
+                border: "none",
+                outline: "none",
+                background: "none",
+                fontFamily: "Inter, sans-serif",
               }}
-            >
-              {i}
-            </button>
-          ))}
+            />
+          </div>
+
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#444",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: 12,
+            }}
+          >
+            Icon
+          </p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(6, 1fr)",
+              gap: 8,
+            }}
+          >
+            {ICONS.map((i) => (
+              <button
+                key={i}
+                onClick={() => setIcon(i)}
+                style={{
+                  background: icon === i ? "#F9731620" : "#0A0A0A",
+                  border: `1.5px solid ${icon === i ? "#F97316" : "#1A1A1A"}`,
+                  borderRadius: 12,
+                  padding: "10px 0",
+                  fontSize: 22,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {i}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <div
-        style={{
-          padding: "12px 20px 36px",
-          borderTop: "1px solid #111",
-          flexShrink: 0,
-        }}
-      >
-        <button
-          onClick={save}
-          disabled={!name.trim()}
+        <div
           style={{
-            width: "100%",
-            padding: "16px",
-            background: name.trim()
-              ? "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)"
-              : "#111",
-            border: "none",
-            borderRadius: 14,
-            color: name.trim() ? "#fff" : "#333",
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: "pointer",
-            fontFamily: "Inter, sans-serif",
+            padding: "12px 20px 36px",
+            borderTop: "1px solid #111",
+            flexShrink: 0,
           }}
         >
-          {name.trim() ? `Add "${name}" bucket` : "Enter a name"}
-        </button>
+          <button
+            onClick={save}
+            disabled={!name.trim()}
+            style={{
+              width: "100%",
+              padding: "16px",
+              background: name.trim()
+                ? "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)"
+                : "#111",
+              border: "none",
+              borderRadius: 14,
+              color: name.trim() ? "#fff" : "#333",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            {name.trim() ? `Add "${name}" bucket` : "Enter a name"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -545,7 +555,6 @@ export default function OverviewPage({
   setToast,
 }) {
   const [showNewBucket, setShowNewBucket] = useState(false);
-
   const budgetPct = budget > 0 ? (total / budget) * 100 : 0;
   const over = total > budget;
 
@@ -571,197 +580,209 @@ export default function OverviewPage({
         position: "fixed",
         inset: 0,
         zIndex: 50,
-        background: "#000",
+        background: "rgba(0,0,0,0.3)",
         display: "flex",
-        flexDirection: "column",
+        justifyContent: "center",
         fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* Header */}
       <div
         style={{
-          padding: "52px 20px 14px",
-          flexShrink: 0,
-          borderBottom: "1px solid #111",
+          width: "100%",
+          maxWidth: 480,
+          background: "#000",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
         }}
       >
+        {/* Header */}
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            padding: "52px 20px 14px",
+            flexShrink: 0,
+            borderBottom: "1px solid #111",
           }}
         >
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff" }}>
-            Overview
-          </h2>
-          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <button
-              onClick={() => onMonthChange(-1)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#444",
-                fontSize: 22,
-                cursor: "pointer",
-                padding: "0 8px",
-              }}
-            >
-              ‹
-            </button>
-            <span
-              style={{
-                fontSize: 13,
-                color: "#666",
-                minWidth: 90,
-                textAlign: "center",
-              }}
-            >
-              {MONTHS[month]} {year}
-            </span>
-            <button
-              onClick={() => onMonthChange(1)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#444",
-                fontSize: 22,
-                cursor: "pointer",
-                padding: "0 8px",
-              }}
-            >
-              ›
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 100px" }}>
-        {/* Gauge */}
-        <div
-          style={{
-            background: "#0A0A0A",
-            borderRadius: 20,
-            margin: "16px 0 8px",
-            border: "1px solid #1A1A1A",
-            overflow: "hidden",
-          }}
-        >
-          <GaugeChart
-            pct={budgetPct}
-            over={over}
-            spent={total}
-            budget={budget}
-          />
           <div
-            style={{ padding: "8px 20px 14px", borderTop: "1px solid #111" }}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
           >
-            <p style={{ fontSize: 12, color: "#333" }}>
-              {expenses.length} expense{expenses.length !== 1 ? "s" : ""} this
-              month
-            </p>
+            <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff" }}>
+              Overview
+            </h2>
+            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <button
+                onClick={() => onMonthChange(-1)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#444",
+                  fontSize: 22,
+                  cursor: "pointer",
+                  padding: "0 8px",
+                }}
+              >
+                ‹
+              </button>
+              <span
+                style={{
+                  fontSize: 13,
+                  color: "#666",
+                  minWidth: 90,
+                  textAlign: "center",
+                }}
+              >
+                {MONTHS[month]} {year}
+              </span>
+              <button
+                onClick={() => onMonthChange(1)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#444",
+                  fontSize: 22,
+                  cursor: "pointer",
+                  padding: "0 8px",
+                }}
+              >
+                ›
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Buckets header */}
-        <div
-          style={{
-            marginTop: 20,
-            marginBottom: 12,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#444",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            Buckets
-          </p>
-          <button
-            onClick={() => setShowNewBucket(true)}
-            style={{
-              background: "linear-gradient(135deg,#F97316,#EC4899)",
-              border: "none",
-              borderRadius: 20,
-              padding: "5px 14px",
-              color: "#fff",
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: "pointer",
-              fontFamily: "Inter, sans-serif",
-            }}
-          >
-            + Add
-          </button>
-        </div>
-
-        {categories.length === 0 ? (
+        <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 100px" }}>
+          {/* Gauge */}
           <div
             style={{
-              textAlign: "center",
-              padding: "40px 20px",
               background: "#0A0A0A",
-              borderRadius: 16,
+              borderRadius: 20,
+              margin: "16px 0 8px",
               border: "1px solid #1A1A1A",
+              overflow: "hidden",
             }}
           >
-            <p style={{ fontSize: 32, marginBottom: 12 }}>🪣</p>
+            <GaugeChart
+              pct={budgetPct}
+              over={over}
+              spent={total}
+              budget={budget}
+            />
+            <div
+              style={{ padding: "8px 20px 14px", borderTop: "1px solid #111" }}
+            >
+              <p style={{ fontSize: 12, color: "#333" }}>
+                {expenses.length} expense{expenses.length !== 1 ? "s" : ""} this
+                month
+              </p>
+            </div>
+          </div>
+
+          {/* Buckets header */}
+          <div
+            style={{
+              marginTop: 20,
+              marginBottom: 12,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <p
               style={{
-                fontSize: 15,
-                color: "#fff",
+                fontSize: 11,
                 fontWeight: 600,
-                marginBottom: 6,
+                color: "#444",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
               }}
             >
-              No buckets yet
-            </p>
-            <p style={{ fontSize: 13, color: "#333", marginBottom: 20 }}>
-              Create buckets to organize your spending
+              Buckets
             </p>
             <button
               onClick={() => setShowNewBucket(true)}
               style={{
                 background: "linear-gradient(135deg,#F97316,#EC4899)",
                 border: "none",
-                borderRadius: 12,
-                padding: "12px 24px",
+                borderRadius: 20,
+                padding: "5px 14px",
                 color: "#fff",
-                fontSize: 14,
-                fontWeight: 700,
+                fontSize: 12,
+                fontWeight: 600,
                 cursor: "pointer",
                 fontFamily: "Inter, sans-serif",
               }}
             >
-              + Add your first bucket
+              + Add
             </button>
           </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {categories.map((cat) => (
-              <BucketCard
-                key={cat.id}
-                cat={cat}
-                spent={byCategory[cat.id] || 0}
-                onDelete={handleDeleteBucket}
-              />
-            ))}
-          </div>
+
+          {categories.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 20px",
+                background: "#0A0A0A",
+                borderRadius: 16,
+                border: "1px solid #1A1A1A",
+              }}
+            >
+              <p style={{ fontSize: 32, marginBottom: 12 }}>🪣</p>
+              <p
+                style={{
+                  fontSize: 15,
+                  color: "#fff",
+                  fontWeight: 600,
+                  marginBottom: 6,
+                }}
+              >
+                No buckets yet
+              </p>
+              <p style={{ fontSize: 13, color: "#333", marginBottom: 20 }}>
+                Create buckets to organize your spending
+              </p>
+              <button
+                onClick={() => setShowNewBucket(true)}
+                style={{
+                  background: "linear-gradient(135deg,#F97316,#EC4899)",
+                  border: "none",
+                  borderRadius: 12,
+                  padding: "12px 24px",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
+                + Add your first bucket
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {categories.map((cat) => (
+                <BucketCard
+                  key={cat.id}
+                  cat={cat}
+                  spent={byCategory[cat.id] || 0}
+                  onDelete={handleDeleteBucket}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {showNewBucket && (
+          <NewBucketModal
+            onSave={handleAddBucket}
+            onClose={() => setShowNewBucket(false)}
+          />
         )}
       </div>
-      {showNewBucket && (
-        <NewBucketModal
-          onSave={handleAddBucket}
-          onClose={() => setShowNewBucket(false)}
-        />
-      )}
     </div>
   );
 }
