@@ -1,8 +1,6 @@
 import { calendarStyles as cal } from "../styles/calendar";
 import { getCat, fmt } from "../utils";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
-
 const getRingGradient = (count) => {
   if (count >= 3) return "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)";
   if (count === 2) return "linear-gradient(135deg,#8B5CF6,#6D28D9)";
@@ -118,7 +116,7 @@ export default function DayCell({ day, expenses, onClick, isToday }) {
             >
               {exp?.photo_url ? (
                 <img
-                  src={`${API}${exp.photo_url}`}
+                  src={exp.photo_url}
                   alt=""
                   style={{
                     width: "100%",
