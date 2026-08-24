@@ -1,16 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { uploadToS3, deleteFromS3, getSignedPhotoUrl } = require("./src/s3");
 require("dotenv").config();
 
 const pool = require("./src/db");
 const { readReceipt } = require("./src/claudeService");
 
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ storage: multer.memoryStorage() });
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || "snapspend-secret-key";
 
@@ -22,7 +21,6 @@ app.use(
   }),
 );
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ── Auth middleware ────────────────────────────────────────────────────────────
 const auth = (req, res, next) => {
@@ -34,6 +32,14 @@ const auth = (req, res, next) => {
   } catch {
     res.status(401).json({ error: "Invalid token" });
   }
+};
+
+// ── Helper: upload an incoming multer file to S3, return the S3 key ────────────
+const uploadPhotoIfPresent = async (req) => {
+  if (!req.file) return undefined; // undefined = "no photo field sent"
+  const key = `receipts/${req.user.id}/${Date.now()}-${req.file.originalname}`;
+  await uploadToS3(req.file.buffer, key, req.file.mimetype);
+  return key;
 };
 
 // ── Health check ───────────────────────────────────────────────────────────────
@@ -110,7 +116,13 @@ app.get("/expenses", auth, async (req, res) => {
       "SELECT * FROM expenses WHERE user_id = $1 ORDER BY date DESC, created_at DESC",
       [req.user.id],
     );
-    res.json(result.rows);
+    const withUrls = await Promise.all(
+      result.rows.map(async (row) => ({
+        ...row,
+        photo_url: await getSignedPhotoUrl(row.photo_url),
+      })),
+    );
+    res.json(withUrls);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -118,8 +130,13 @@ app.get("/expenses", auth, async (req, res) => {
 
 app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
   try {
-    const data = await readReceipt(req.file.path);
-    const photo_url = `/uploads/${req.file.filename}`;
+    const { data, buffer, mimeType } = await readReceipt(
+      req.file.buffer,
+      req.file.mimetype,
+    );
+    const key = `receipts/${req.user.id}/${Date.now()}-${req.file.originalname}`;
+    await uploadToS3(buffer, key, mimeType);
+
     const result = await pool.query(
       `INSERT INTO expenses (store_name, amount, category, date, photo_url, entry_type, note, user_id)
        VALUES ($1, $2, $3, $4, $5, 'scan', $6, $7) RETURNING *`,
@@ -128,7 +145,7 @@ app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
         data.amount,
         data.category,
         data.date,
-        photo_url,
+        key,
         req.body.note || null,
         req.user.id,
       ],
@@ -142,7 +159,7 @@ app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
 app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
   try {
     const { store_name, amount, category, date, note } = req.body;
-    const photo_url = req.file ? `/uploads/${req.file.filename}` : null;
+    const photo_url = await uploadPhotoIfPresent(req);
     const result = await pool.query(
       `INSERT INTO expenses (store_name, amount, category, date, photo_url, note, entry_type, user_id)
        VALUES ($1, $2, $3, $4, $5, $6, 'manual', $7) RETURNING *`,
@@ -151,7 +168,7 @@ app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
         parseFloat(amount),
         category || "uncategorized",
         date || new Date().toISOString().split("T")[0],
-        photo_url,
+        photo_url || null,
         note || null,
         req.user.id,
       ],
@@ -165,7 +182,20 @@ app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
 app.patch("/expenses/:id", auth, upload.single("photo"), async (req, res) => {
   try {
     const { store_name, amount, category, date, note } = req.body;
-    const photo_url = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+    let photo_url; // stays undefined if no new photo -> field skipped in UPDATE
+    if (req.file) {
+      // fetch old key first so we can delete it after a successful upload
+      const existing = await pool.query(
+        "SELECT photo_url FROM expenses WHERE id = $1 AND user_id = $2",
+        [req.params.id, req.user.id],
+      );
+      photo_url = await uploadPhotoIfPresent(req);
+      if (existing.rows[0]?.photo_url) {
+        await deleteFromS3(existing.rows[0].photo_url);
+      }
+    }
+
     const fields = [];
     const values = [];
     let idx = 1;
@@ -212,9 +242,7 @@ app.delete("/expenses/:id", auth, async (req, res) => {
       [req.params.id, req.user.id],
     );
     if (row.rows[0]?.photo_url) {
-      try {
-        fs.unlinkSync(path.join(__dirname, row.rows[0].photo_url));
-      } catch {}
+      await deleteFromS3(row.rows[0].photo_url);
     }
     await pool.query("DELETE FROM expenses WHERE id = $1 AND user_id = $2", [
       req.params.id,

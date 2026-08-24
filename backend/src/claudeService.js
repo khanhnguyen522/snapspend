@@ -4,10 +4,10 @@ require("dotenv").config();
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const readReceipt = async (imagePath) => {
-  let imageData = fs.readFileSync(imagePath);
+const readReceipt = async (imageBuffer, mimeType = "image/jpeg") => {
+  let imageData = imageBuffer;
+  let finalMimeType = mimeType;
 
-  // Handle HEIC (iPhone photos)
   const header = imageData.slice(4, 12).toString("ascii");
   if (header.includes("ftyp")) {
     const heicConvert = require("heic-convert");
@@ -17,12 +17,10 @@ const readReceipt = async (imagePath) => {
       quality: 0.8,
     });
     imageData = Buffer.from(jpegBuffer);
+    finalMimeType = "image/jpeg";
   }
 
   const base64Image = imageData.toString("base64");
-  try {
-    fs.unlinkSync(imagePath);
-  } catch {}
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-6",
@@ -56,7 +54,9 @@ If you cannot read the receipt clearly, make your best guess. For date, use toda
   });
 
   const cleaned = message.content[0].text.replace(/```json|```/g, "").trim();
-  return JSON.parse(cleaned);
+  const data = JSON.parse(cleaned);
+
+  return { data, buffer: imageData, mimeType: finalMimeType };
 };
 
 module.exports = { readReceipt };
