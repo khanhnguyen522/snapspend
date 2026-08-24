@@ -34,10 +34,16 @@ const auth = (req, res, next) => {
   }
 };
 
+// ── Helper: build a safe S3 key (never undefined/empty) ────────────────────────
+const buildPhotoKey = (userId, originalname) => {
+  const safeName = (originalname || "photo").replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `receipts/${userId}/${Date.now()}-${safeName}`;
+};
+
 // ── Helper: upload an incoming multer file to S3, return the S3 key ────────────
 const uploadPhotoIfPresent = async (req) => {
   if (!req.file) return undefined; // undefined = "no photo field sent"
-  const key = `receipts/${req.user.id}/${Date.now()}-${req.file.originalname}`;
+  const key = buildPhotoKey(req.user.id, req.file.originalname);
   await uploadToS3(req.file.buffer, key, req.file.mimetype);
   return key;
 };
@@ -67,6 +73,7 @@ app.post("/auth/register", async (req, res) => {
     });
     res.json({ token, user });
   } catch (err) {
+    console.error("REGISTER ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -93,6 +100,7 @@ app.post("/auth/login", async (req, res) => {
       user: { id: user.id, email: user.email, name: user.name },
     });
   } catch (err) {
+    console.error("LOGIN ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -105,6 +113,7 @@ app.get("/auth/me", auth, async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
+    console.error("AUTH/ME ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -117,24 +126,46 @@ app.get("/expenses", auth, async (req, res) => {
       [req.user.id],
     );
     const withUrls = await Promise.all(
-      result.rows.map(async (row) => ({
-        ...row,
-        photo_url: await getSignedPhotoUrl(row.photo_url),
-      })),
+      result.rows.map(async (row) => {
+        try {
+          return { ...row, photo_url: await getSignedPhotoUrl(row.photo_url) };
+        } catch (signErr) {
+          console.error(
+            "SIGN URL ERROR for row",
+            row.id,
+            "key:",
+            row.photo_url,
+            signErr,
+          );
+          return { ...row, photo_url: null };
+        }
+      }),
     );
     res.json(withUrls);
   } catch (err) {
+    console.error("GET /expenses ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No photo file received" });
+    }
+
     const { data, buffer, mimeType } = await readReceipt(
       req.file.buffer,
       req.file.mimetype,
     );
-    const key = `receipts/${req.user.id}/${Date.now()}-${req.file.originalname}`;
+
+    const key = buildPhotoKey(req.user.id, req.file.originalname);
+    console.log(
+      "SCAN: uploading to S3 with key =",
+      key,
+      "bucket =",
+      process.env.S3_BUCKET_NAME,
+    );
     await uploadToS3(buffer, key, mimeType);
 
     const result = await pool.query(
@@ -152,6 +183,7 @@ app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
     );
     res.json({ expense: result.rows[0], extracted: data });
   } catch (err) {
+    console.error("SCAN ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -175,6 +207,7 @@ app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
+    console.error("MANUAL ENTRY ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -231,6 +264,7 @@ app.patch("/expenses/:id", auth, upload.single("photo"), async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
+    console.error("PATCH EXPENSE ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -250,6 +284,7 @@ app.delete("/expenses/:id", auth, async (req, res) => {
     ]);
     res.json({ message: "Deleted" });
   } catch (err) {
+    console.error("DELETE EXPENSE ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -263,6 +298,7 @@ app.get("/categories", auth, async (req, res) => {
     );
     res.json({ categories: result.rows });
   } catch (err) {
+    console.error("GET CATEGORIES ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -277,6 +313,7 @@ app.post("/categories", auth, async (req, res) => {
     );
     res.json({ category: result.rows[0] });
   } catch (err) {
+    console.error("CREATE CATEGORY ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -291,6 +328,7 @@ app.patch("/categories/:id", auth, async (req, res) => {
     );
     res.json({ category: result.rows[0] });
   } catch (err) {
+    console.error("UPDATE CATEGORY ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -303,6 +341,7 @@ app.delete("/categories/:id", auth, async (req, res) => {
     ]);
     res.json({ message: "Deleted" });
   } catch (err) {
+    console.error("DELETE CATEGORY ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
