@@ -7,7 +7,7 @@ const {
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const s3 = new S3Client({ region: process.env.AWS_REGION || "us-east-2" });
-const BUCKET = proccess.env.S3_BUCKET_NAME;
+const BUCKET = process.env.S3_BUCKET_NAME;
 
 const uploadToS3 = async (buffer, key, contentType) => {
   await s3.send(
