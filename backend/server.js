@@ -1,10 +1,11 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { uploadToS3, deleteFromS3, getSignedPhotoUrl } = require("./src/s3");
-require("dotenv").config();
 
 const pool = require("./src/db");
 const { readReceipt } = require("./src/claudeService");
