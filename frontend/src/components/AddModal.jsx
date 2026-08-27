@@ -311,6 +311,7 @@ export default function AddModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [showNewBucket, setShowNewBucket] = useState(false);
+  const [wasScanned, setWasScanned] = useState(false);
   const [form, setForm] = useState({
     amount: "",
     store_name: "",
@@ -355,13 +356,17 @@ export default function AddModal({
         date: e.date,
         category: matched?.id || "",
       }));
+      setWasScanned(true);
     } catch {
       setError("Could not read receipt. Fill in manually.");
     }
     setStep("form");
   };
 
-  const handleManual = () => setStep("form");
+  const handleManual = () => {
+    setWasScanned(false);
+    setStep("form");
+  };
 
   const handleNewBucket = async (cat) => {
     await onAddCategory(cat);
@@ -383,7 +388,10 @@ export default function AddModal({
       fd.append("category", form.category || "uncategorized");
       fd.append("note", form.note);
       fd.append("date", form.date);
-      await axios.post(`${API}/expenses/manual`, fd);
+
+      const endpoint = wasScanned ? "confirm-scan" : "manual";
+      await axios.post(`${API}/expenses/${endpoint}`, fd);
+
       setToast("Expense saved");
       onSaved();
       onClose();

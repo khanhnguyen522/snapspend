@@ -6,6 +6,7 @@ const multer = require("multer");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { uploadToS3, deleteFromS3, getSignedPhotoUrl } = require("./src/s3");
+const { normalizeImage } = require("./src/imageUtils");
 
 const pool = require("./src/db");
 const { readReceipt } = require("./src/claudeService");
@@ -43,9 +44,13 @@ const buildPhotoKey = (userId, originalname) => {
 
 // ── Helper: upload an incoming multer file to S3, return the S3 key ────────────
 const uploadPhotoIfPresent = async (req) => {
-  if (!req.file) return undefined; // undefined = "no photo field sent"
+  if (!req.file) return undefined;
+  const { buffer, mimeType } = await normalizeImage(
+    req.file.buffer,
+    req.file.mimetype,
+  );
   const key = buildPhotoKey(req.user.id, req.file.originalname);
-  await uploadToS3(req.file.buffer, key, req.file.mimetype);
+  await uploadToS3(buffer, key, mimeType);
   return key;
 };
 
@@ -155,39 +160,46 @@ app.post("/expenses/scan", auth, upload.single("photo"), async (req, res) => {
       return res.status(400).json({ error: "No photo file received" });
     }
 
-    const { data, buffer, mimeType } = await readReceipt(
-      req.file.buffer,
-      req.file.mimetype,
-    );
+    const { data } = await readReceipt(req.file.buffer, req.file.mimetype);
 
-    const key = buildPhotoKey(req.user.id, req.file.originalname);
-    console.log(
-      "SCAN: uploading to S3 with key =",
-      key,
-      "bucket =",
-      process.env.S3_BUCKET_NAME,
-    );
-    await uploadToS3(buffer, key, mimeType);
-
-    const result = await pool.query(
-      `INSERT INTO expenses (store_name, amount, category, date, photo_url, entry_type, note, user_id)
-       VALUES ($1, $2, $3, $4, $5, 'scan', $6, $7) RETURNING *`,
-      [
-        data.store_name,
-        data.amount,
-        data.category,
-        data.date,
-        key,
-        req.body.note || null,
-        req.user.id,
-      ],
-    );
-    res.json({ expense: result.rows[0], extracted: data });
+    // Scan is read-only: nothing is uploaded to S3 or inserted into the DB here.
+    res.json({ extracted: data });
   } catch (err) {
     console.error("SCAN ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
+app.post(
+  "/expenses/confirm-scan",
+  auth,
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      const { store_name, amount, category, date, note } = req.body;
+
+      const photo_url = await uploadPhotoIfPresent(req); // uploads to S3 now, for the first time
+
+      const result = await pool.query(
+        `INSERT INTO expenses (store_name, amount, category, date, photo_url, entry_type, note, user_id)
+       VALUES ($1, $2, $3, $4, $5, 'scan', $6, $7) RETURNING *`,
+        [
+          store_name,
+          parseFloat(amount),
+          category,
+          date,
+          photo_url || null,
+          note || null,
+          req.user.id,
+        ],
+      );
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error("CONFIRM SCAN ERROR:", err);
+      res.status(500).json({ error: err.message });
+    }
+  },
+);
 
 app.post("/expenses/manual", auth, upload.single("photo"), async (req, res) => {
   try {

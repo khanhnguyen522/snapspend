@@ -1,24 +1,14 @@
 const Anthropic = require("@anthropic-ai/sdk");
-const fs = require("fs");
 require("dotenv").config();
+const { normalizeImage } = require("./imageUtils");
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const readReceipt = async (imageBuffer, mimeType = "image/jpeg") => {
-  let imageData = imageBuffer;
-  let finalMimeType = mimeType;
-
-  const header = imageData.slice(4, 12).toString("ascii");
-  if (header.includes("ftyp")) {
-    const heicConvert = require("heic-convert");
-    const jpegBuffer = await heicConvert({
-      buffer: imageData,
-      format: "JPEG",
-      quality: 0.8,
-    });
-    imageData = Buffer.from(jpegBuffer);
-    finalMimeType = "image/jpeg";
-  }
+  const { buffer: imageData, mimeType: finalMimeType } = await normalizeImage(
+    imageBuffer,
+    mimeType,
+  );
 
   const base64Image = imageData.toString("base64");
 
@@ -33,7 +23,7 @@ const readReceipt = async (imageBuffer, mimeType = "image/jpeg") => {
             type: "image",
             source: {
               type: "base64",
-              media_type: "image/jpeg",
+              media_type: finalMimeType,
               data: base64Image,
             },
           },
@@ -53,8 +43,15 @@ If you cannot read the receipt clearly, make your best guess. For date, use toda
     ],
   });
 
-  const cleaned = message.content[0].text.replace(/```json|```/g, "").trim();
-  const data = JSON.parse(cleaned);
+  const textBlock = message.content.find((b) => b.type === "text");
+  const cleaned = textBlock.text.replace(/```json|```/g, "").trim();
+
+  let data;
+  try {
+    data = JSON.parse(cleaned);
+  } catch {
+    throw new Error("Claude returned unparseable JSON for this receipt");
+  }
 
   return { data, buffer: imageData, mimeType: finalMimeType };
 };
