@@ -24,19 +24,19 @@ const createTables = async () => {
 
   // Expenses table
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS expenses (
-      id SERIAL PRIMARY KEY,
-      store_name VARCHAR(255),
-      amount DECIMAL(10,2) NOT NULL,
-      category VARCHAR(100) DEFAULT 'other',
-      date DATE NOT NULL,
-      photo_url TEXT,
-      note TEXT,
-      entry_type VARCHAR(20) DEFAULT 'manual',
-      created_at TIMESTAMP DEFAULT NOW(),
-      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS expenses (
+    id SERIAL PRIMARY KEY,
+    store_name VARCHAR(255),
+    amount DECIMAL(10,2) NOT NULL,
+    category VARCHAR(50) REFERENCES buckets(id) ON DELETE RESTRICT,
+    date DATE NOT NULL,
+    photo_url TEXT,
+    note TEXT,
+    entry_type VARCHAR(20) DEFAULT 'manual',
+    created_at TIMESTAMP DEFAULT NOW(),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
+  )
+`);
 
   // Buckets table
   await pool.query(`
