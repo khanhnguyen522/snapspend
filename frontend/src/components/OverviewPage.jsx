@@ -570,8 +570,12 @@ export default function OverviewPage({
   };
 
   const handleDeleteBucket = async (id) => {
-    await onDeleteCategory(id);
-    setToast("Bucket removed");
+    try {
+      await onDeleteCategory(id);
+      setToast("Bucket removed");
+    } catch (err) {
+      setToast(err.message);
+    }
   };
 
   return (

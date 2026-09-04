@@ -354,6 +354,17 @@ app.delete("/categories/:id", auth, async (req, res) => {
     ]);
     res.json({ message: "Deleted" });
   } catch (err) {
+    if (err.code === "23503") {
+      const countResult = await pool.query(
+        "SELECT COUNT(*) FROM expenses WHERE category = $1 AND user_id = $2",
+        [req.params.id, req.user.id],
+      );
+      const count = parseInt(countResult.rows[0].count, 10);
+      return res.status(409).json({
+        error: "BUCKET_HAS_EXPENSES",
+        message: `This category has ${count} expense${count === 1 ? "" : "s"} — reassign them first.`,
+      });
+    }
     console.error("DELETE CATEGORY ERROR:", err);
     res.status(500).json({ error: err.message });
   }

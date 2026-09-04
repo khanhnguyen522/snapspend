@@ -85,7 +85,12 @@ export default function App() {
     try {
       await axios.delete(`${API}/categories/${id}`);
       setCategories((prev) => prev.filter((c) => c.id !== id));
-    } catch {}
+    } catch (err) {
+      if (err.response?.status === 409) {
+        throw new Error(err.response.data.message);
+      }
+      throw new Error("Failed to delete bucket.");
+    }
   };
 
   const handleLogin = (u) => {
