@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { fmt } from "../utils";
 import { MONTHS } from "../constants";
 
@@ -936,15 +937,17 @@ export default function OverviewPage({
           />
         )}
 
-        {reassignFor && (
-          <ReassignModal
-            bucketName={reassignFor.name}
-            otherBuckets={categories.filter((c) => c.id !== reassignFor.id)}
-            onConfirm={handleReassignAndDelete}
-            onClose={() => setReassignFor(null)}
-            reassigning={reassigning}
-          />
-        )}
+        {reassignFor &&
+          createPortal(
+            <ReassignModal
+              bucketName={reassignFor.name}
+              otherBuckets={categories.filter((c) => c.id !== reassignFor.id)}
+              onConfirm={handleReassignAndDelete}
+              onClose={() => setReassignFor(null)}
+              reassigning={reassigning}
+            />,
+            document.body,
+          )}
       </div>
     </div>
   );
