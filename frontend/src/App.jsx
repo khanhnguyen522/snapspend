@@ -87,9 +87,25 @@ export default function App() {
       setCategories((prev) => prev.filter((c) => c.id !== id));
     } catch (err) {
       if (err.response?.status === 409) {
-        throw new Error(err.response.data.message);
+        const e = new Error(err.response.data.message);
+        e.needsReassign = true;
+        throw e;
       }
       throw new Error("Failed to delete bucket.");
+    }
+  };
+
+  const reassignAndDeleteCategory = async (id, targetId) => {
+    try {
+      await axios.post(`${API}/categories/${id}/reassign-and-delete`, {
+        targetId,
+      });
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      fetchAll(); // refresh expenses since their category changed
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.error || "Failed to reassign and delete.",
+      );
     }
   };
 
@@ -428,6 +444,7 @@ export default function App() {
           onMonthChange={handleOverviewMonthChange}
           onAddCategory={addCategory}
           onDeleteCategory={deleteCategory}
+          onReassignAndDelete={reassignAndDeleteCategory}
           setToast={setToast}
         />
       )}

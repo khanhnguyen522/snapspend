@@ -370,6 +370,54 @@ app.delete("/categories/:id", auth, async (req, res) => {
   }
 });
 
+app.post("/categories/:id/reassign-and-delete", auth, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { targetId } = req.body;
+    if (!targetId) {
+      return res.status(400).json({ error: "targetId is required" });
+    }
+    if (targetId === req.params.id) {
+      return res.status(400).json({
+        error: "Target bucket must be different from the one being deleted",
+      });
+    }
+
+    await client.query("BEGIN");
+
+    // Confirm target bucket exists and belongs to this user
+    const targetCheck = await client.query(
+      "SELECT id FROM buckets WHERE id = $1 AND user_id = $2",
+      [targetId, req.user.id],
+    );
+    if (targetCheck.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Target bucket not found" });
+    }
+
+    // Move all expenses over
+    await client.query(
+      "UPDATE expenses SET category = $1 WHERE category = $2 AND user_id = $3",
+      [targetId, req.params.id, req.user.id],
+    );
+
+    // Now safe to delete
+    await client.query("DELETE FROM buckets WHERE id = $1 AND user_id = $2", [
+      req.params.id,
+      req.user.id,
+    ]);
+
+    await client.query("COMMIT");
+    res.json({ message: "Reassigned and deleted" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("REASSIGN AND DELETE ERROR:", err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 app.listen(process.env.PORT || 3001, () =>
   console.log(`Snapspend API on port ${process.env.PORT || 3001}`),
 );

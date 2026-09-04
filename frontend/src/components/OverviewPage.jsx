@@ -432,6 +432,132 @@ function NewBucketModal({ onSave, onClose }) {
   );
 }
 
+function ReassignModal({
+  bucketName,
+  otherBuckets,
+  onConfirm,
+  onClose,
+  reassigning,
+}) {
+  const [targetId, setTargetId] = useState(otherBuckets[0]?.id || "");
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 2000,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-end",
+        fontFamily: "Inter, sans-serif",
+        touchAction: "none",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 480,
+          background: "#000",
+          borderRadius: "20px 20px 0 0",
+          padding: "24px 20px 36px",
+          animation: "slideUp 0.2s ease",
+        }}
+      >
+        <p
+          style={{
+            fontSize: 17,
+            fontWeight: 700,
+            color: "#fff",
+            marginBottom: 8,
+          }}
+        >
+          Move expenses first
+        </p>
+        <p style={{ fontSize: 13, color: "#888", marginBottom: 20 }}>
+          "{bucketName}" still has expenses. Pick a bucket to move them to
+          before deleting.
+        </p>
+
+        {otherBuckets.length === 0 ? (
+          <p style={{ fontSize: 13, color: "#F87171", marginBottom: 20 }}>
+            You need at least one other bucket to reassign to. Create one first,
+            then try deleting again.
+          </p>
+        ) : (
+          <select
+            value={targetId}
+            onChange={(e) => setTargetId(e.target.value)}
+            style={{
+              width: "100%",
+              background: "#0A0A0A",
+              border: "1px solid #1A1A1A",
+              borderRadius: 12,
+              padding: "14px 16px",
+              fontSize: 15,
+              color: "#fff",
+              outline: "none",
+              marginBottom: 20,
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            {otherBuckets.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.icon} {b.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={onClose}
+            disabled={reassigning}
+            style={{
+              flex: 1,
+              padding: "14px",
+              background: "#111",
+              border: "none",
+              borderRadius: 12,
+              color: "#888",
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            Cancel
+          </button>
+          {otherBuckets.length > 0 && (
+            <button
+              onClick={() => targetId && onConfirm(targetId)}
+              disabled={!targetId || reassigning}
+              style={{
+                flex: 1,
+                padding: "14px",
+                background:
+                  targetId && !reassigning
+                    ? "linear-gradient(135deg,#F97316,#EC4899)"
+                    : "#111",
+                border: "none",
+                borderRadius: 12,
+                color: targetId && !reassigning ? "#fff" : "#333",
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              {reassigning ? "Moving..." : "Move & delete"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BucketCard({ cat, spent, onDelete }) {
   const budget = parseFloat(cat.budget || 0);
   const hasBudget = budget > 0;
@@ -552,9 +678,12 @@ export default function OverviewPage({
   onMonthChange,
   onAddCategory,
   onDeleteCategory,
+  onReassignAndDelete,
   setToast,
 }) {
   const [showNewBucket, setShowNewBucket] = useState(false);
+  const [reassignFor, setReassignFor] = useState(null); // bucket object needing reassignment
+  const [reassigning, setReassigning] = useState(false);
   const budgetPct = budget > 0 ? (total / budget) * 100 : 0;
   const over = total > budget;
 
@@ -574,8 +703,25 @@ export default function OverviewPage({
       await onDeleteCategory(id);
       setToast("Bucket removed");
     } catch (err) {
+      if (err.needsReassign) {
+        const bucket = categories.find((c) => c.id === id);
+        setReassignFor(bucket);
+      } else {
+        setToast(err.message);
+      }
+    }
+  };
+
+  const handleReassignAndDelete = async (targetId) => {
+    setReassigning(true);
+    try {
+      await onReassignAndDelete(reassignFor.id, targetId);
+      setToast("Expenses moved, bucket removed");
+      setReassignFor(null);
+    } catch (err) {
       setToast(err.message);
     }
+    setReassigning(false);
   };
 
   return (
@@ -784,6 +930,16 @@ export default function OverviewPage({
           <NewBucketModal
             onSave={handleAddBucket}
             onClose={() => setShowNewBucket(false)}
+          />
+        )}
+
+        {reassignFor && (
+          <ReassignModal
+            bucketName={reassignFor.name}
+            otherBuckets={categories.filter((c) => c.id !== reassignFor.id)}
+            onConfirm={handleReassignAndDelete}
+            onClose={() => setReassignFor(null)}
+            reassigning={reassigning}
           />
         )}
       </div>
