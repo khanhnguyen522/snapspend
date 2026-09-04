@@ -452,17 +452,20 @@ function ReassignModal({
         justifyContent: "center",
         alignItems: "flex-end",
         fontFamily: "Inter, sans-serif",
-        touchAction: "none",
       }}
+      onClick={(e) => e.target === e.currentTarget && !reassigning && onClose()}
     >
       <div
         style={{
           width: "100%",
           maxWidth: 480,
+          maxHeight: "85vh",
+          overflowY: "auto",
           background: "#000",
           borderRadius: "20px 20px 0 0",
           padding: "24px 20px 36px",
           animation: "slideUp 0.2s ease",
+          boxSizing: "border-box",
         }}
       >
         <p
