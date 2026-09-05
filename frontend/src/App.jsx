@@ -63,6 +63,17 @@ export default function App() {
     };
   }, [showAdd, showSearch, daySheet]);
 
+  useEffect(() => {
+    if (!daySheet) return;
+    const stillHasExpenses = expenses.some((e) => {
+      if (!e.date) return false;
+      const [y, m, d] = e.date.split("T")[0].split("-").map(Number);
+      return d === daySheet.day && m - 1 === month && y === year;
+    });
+    if (!stillHasExpenses) setDaySheet(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expenses]);
+
   const fetchAll = async () => {
     try {
       const [expRes, catRes] = await Promise.all([
@@ -128,22 +139,12 @@ export default function App() {
   const deleteExp = async (id) => {
     await axios.delete(`${API}/expenses/${id}`);
     fetchAll();
-    if (daySheet) {
-      const remaining = daySheet.expenses.filter((e) => e.id !== id);
-      if (remaining.length === 0) setDaySheet(null);
-      else setDaySheet({ ...daySheet, expenses: remaining });
-    }
   };
 
   const handleSelectDay = (day, month, year) => {
     setMonth(month);
     setYear(year);
-    const dayExpenses = expenses.filter((e) => {
-      if (!e.date) return false;
-      const [y, m, d] = e.date.split("T")[0].split("-").map(Number);
-      return d === day && m - 1 === month && y === year;
-    });
-    setDaySheet({ day, expenses: dayExpenses });
+    setDaySheet({ day });
   };
 
   const handleOverviewMonthChange = (dir) => {
@@ -190,6 +191,12 @@ export default function App() {
     (s, c) => s + parseFloat(c.budget || 0),
     0,
   );
+
+  const daySheetExpenses = daySheet
+    ? monthExpenses.filter(
+        (e) => parseInt(e.date.split("T")[0].split("-")[2]) === daySheet.day,
+      )
+    : [];
 
   const getMonthRingStyle = (i) => {
     const isActive = i === month;
@@ -553,7 +560,7 @@ export default function App() {
       {daySheet && (
         <DaySheet
           day={daySheet.day}
-          expenses={daySheet.expenses}
+          expenses={daySheetExpenses}
           month={month}
           year={year}
           onClose={() => setDaySheet(null)}
