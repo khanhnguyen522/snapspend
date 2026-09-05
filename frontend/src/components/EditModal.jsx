@@ -1,8 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import { modalStyles as m } from "../styles/modal";
-import { CATEGORIES } from "../constants";
-import { getCat } from "../utils";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -27,13 +25,19 @@ function Field({ label, children }) {
   );
 }
 
-export default function EditModal({ expense, onClose, onSaved, setToast }) {
+export default function EditModal({
+  expense,
+  categories,
+  onClose,
+  onSaved,
+  setToast,
+}) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [form, setForm] = useState({
     amount: expense.amount,
     store_name: expense.store_name || "",
-    category: expense.category || "other",
+    category: expense.category || "",
     note: expense.note || "",
     date: expense.date ? expense.date.split("T")[0] : "",
   });
@@ -125,9 +129,9 @@ export default function EditModal({ expense, onClose, onSaved, setToast }) {
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 style={m.input}
               >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {getCat(c).icon} {c}
+                {(categories || []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.icon} {c.name}
                   </option>
                 ))}
               </select>
