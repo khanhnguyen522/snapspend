@@ -42,6 +42,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (activeTab !== "calendar") return;
     const scrollToActive = () => {
       if (monthStripRef.current) {
         const active = monthStripRef.current.querySelector(
@@ -57,7 +58,7 @@ export default function App() {
     };
     const id = requestAnimationFrame(scrollToActive);
     return () => cancelAnimationFrame(id);
-  }, [month]);
+  }, [month, activeTab]);
 
   useEffect(() => {
     const anyOpen = showAdd || showSearch || !!daySheet;
