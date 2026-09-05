@@ -42,17 +42,21 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (monthStripRef.current) {
-      const active = monthStripRef.current.querySelector(
-        "[data-active='true']",
-      );
-      if (active)
-        active.scrollIntoView({
-          inline: "center",
-          behavior: "smooth",
-          block: "nearest",
-        });
-    }
+    const scrollToActive = () => {
+      if (monthStripRef.current) {
+        const active = monthStripRef.current.querySelector(
+          "[data-active='true']",
+        );
+        if (active)
+          active.scrollIntoView({
+            inline: "center",
+            behavior: "smooth",
+            block: "nearest",
+          });
+      }
+    };
+    const id = requestAnimationFrame(scrollToActive);
+    return () => cancelAnimationFrame(id);
   }, [month]);
 
   useEffect(() => {
