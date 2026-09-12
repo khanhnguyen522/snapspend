@@ -562,12 +562,26 @@ function ReassignModal({
   );
 }
 
-function BucketCard({ cat, spent, onDelete }) {
+function BucketCard({ cat, spent, items = [], onDelete }) {
+  const [expanded, setExpanded] = useState(false);
   const budget = parseFloat(cat.budget || 0);
   const hasBudget = budget > 0;
   const budgetPct = hasBudget ? Math.min((spent / budget) * 100, 100) : 0;
   const over = hasBudget && spent > budget;
   const remaining = budget - spent;
+
+  const sortedItems = [...items].sort((a, b) =>
+    (b.date || "").localeCompare(a.date || ""),
+  );
+
+  const fmtDate = (dateStr) => {
+    if (!dateStr) return "";
+    const [y, m, d] = dateStr.split("T")[0].split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
     <div
@@ -576,7 +590,9 @@ function BucketCard({ cat, spent, onDelete }) {
         borderRadius: 16,
         padding: "16px",
         border: "1px solid #1A1A1A",
+        cursor: items.length > 0 ? "pointer" : "default",
       }}
+      onClick={() => items.length > 0 && setExpanded((e) => !e)}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div
@@ -628,8 +644,25 @@ function BucketCard({ cat, spent, onDelete }) {
             </p>
           )}
         </div>
+        {items.length > 0 && (
+          <span
+            style={{
+              color: "#333",
+              fontSize: 12,
+              flexShrink: 0,
+              padding: "0 4px",
+              transform: expanded ? "rotate(180deg)" : "none",
+              transition: "transform 0.2s ease",
+            }}
+          >
+            ▾
+          </span>
+        )}
         <button
-          onClick={() => onDelete(cat.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(cat.id);
+          }}
           style={{
             background: "none",
             border: "none",
@@ -668,6 +701,59 @@ function BucketCard({ cat, spent, onDelete }) {
           />
         </div>
       )}
+      {expanded && items.length > 0 && (
+        <div
+          style={{
+            marginTop: 14,
+            paddingTop: 14,
+            borderTop: "1px solid #1A1A1A",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          {sortedItems.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "#ccc",
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {item.store_name || "Expense"}
+                </p>
+                <p style={{ fontSize: 11, color: "#444", marginTop: 1 }}>
+                  {fmtDate(item.date)}
+                  {item.note ? ` · ${item.note}` : ""}
+                </p>
+              </div>
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#fff",
+                  flexShrink: 0,
+                }}
+              >
+                {fmt(parseFloat(item.amount))}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -694,6 +780,13 @@ export default function OverviewPage({
   const byCategory = expenses.reduce((acc, e) => {
     const cat = e.category || "uncategorized";
     acc[cat] = (acc[cat] || 0) + parseFloat(e.amount);
+    return acc;
+  }, {});
+
+  const itemsByCategory = expenses.reduce((acc, e) => {
+    const cat = e.category || "uncategorized";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(e);
     return acc;
   }, {});
 
@@ -923,6 +1016,7 @@ export default function OverviewPage({
                   key={cat.id}
                   cat={cat}
                   spent={byCategory[cat.id] || 0}
+                  items={itemsByCategory[cat.id] || []}
                   onDelete={handleDeleteBucket}
                 />
               ))}
