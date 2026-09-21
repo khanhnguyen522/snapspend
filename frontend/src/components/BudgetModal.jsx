@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import api from "../api";
 import { CATEGORIES } from "../constants";
 import { getCat } from "../utils";
+import styles from "./BudgetModal.module.css";
 
 export default function BudgetModal({ current, onClose, onSaved, setToast }) {
   const [overall, setOverall] = useState(String(current));
@@ -45,196 +46,53 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 500,
-        background: "#000",
-        display: "flex",
-        flexDirection: "column",
-        animation: "slideUp 0.25s ease",
-        fontFamily: "Inter, sans-serif",
-        touchAction: "none",
-      }}
-    >
-      <style>{`@keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: none; } }`}</style>
-
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "52px 20px 16px",
-          borderBottom: "1px solid #111",
-          flexShrink: 0,
-          touchAction: "none",
-        }}
-      >
-        <button
-          onClick={onClose}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#555",
-            fontSize: 14,
-            cursor: "pointer",
-            fontFamily: "Inter, sans-serif",
-          }}
-        >
+    <div className={styles.screen}>
+      <div className={styles.header}>
+        <button onClick={onClose} className={styles.cancelBtn}>
           Cancel
         </button>
-        <h2 style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>
-          Budget settings
-        </h2>
-        <button
-          onClick={save}
-          disabled={saving}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#F97316",
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: "pointer",
-            fontFamily: "Inter, sans-serif",
-          }}
-        >
+        <h2 className={styles.title}>Budget settings</h2>
+        <button onClick={save} disabled={saving} className={styles.saveBtn}>
           {saving ? "Saving..." : "Save"}
         </button>
       </div>
 
-      {/* Scrollable content */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "24px 20px 48px",
-          touchAction: "pan-y",
-          overscrollBehavior: "contain",
-        }}
-      >
+      <div className={styles.content}>
         {/* Overall budget */}
-        <div
-          style={{
-            marginBottom: 32,
-            paddingBottom: 24,
-            borderBottom: "1px solid #111",
-          }}
-        >
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#444",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              marginBottom: 16,
-            }}
-          >
-            Overall monthly budget
-          </p>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              marginBottom: 8,
-            }}
-          >
-            <span style={{ fontSize: 30, fontWeight: 300, color: "#333" }}>
-              $
-            </span>
+        <div className={styles.overallSection}>
+          <p className={styles.sectionLabel}>Overall monthly budget</p>
+          <div className={styles.overallRow}>
+            <span className={styles.overallSign}>$</span>
             <input
               type="number"
               autoFocus
               value={overall}
               onChange={(e) => setOverall(e.target.value)}
-              style={{
-                flex: 1,
-                fontSize: 38,
-                fontWeight: 700,
-                color: "#fff",
-                border: "none",
-                outline: "none",
-                background: "none",
-                letterSpacing: "-0.5px",
-                fontFamily: "Inter, sans-serif",
-              }}
+              className={styles.overallInput}
             />
           </div>
-          <p style={{ fontSize: 12, color: "#333" }}>
-            Your total monthly spending limit.
-          </p>
+          <p className={styles.hint}>Your total monthly spending limit.</p>
         </div>
 
         {/* Category limits */}
         <div>
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#444",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              marginBottom: 6,
-            }}
-          >
-            Category limits
-          </p>
-          <p style={{ fontSize: 12, color: "#333", marginBottom: 16 }}>
-            Leave blank for no limit.
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <p className={styles.categoryLabel}>Category limits</p>
+          <p className={styles.categoryHint}>Leave blank for no limit.</p>
+          <div className={styles.categoryList}>
             {CATEGORIES.map((cat) => {
               const config = getCat(cat);
               return (
-                <div
-                  key={cat}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    background: "#0A0A0A",
-                    borderRadius: 12,
-                    padding: "14px 16px",
-                    border: "1px solid #1A1A1A",
-                  }}
-                >
-                  <span style={{ fontSize: 22, flexShrink: 0 }}>
-                    {config.icon}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 14,
-                      color: "#888",
-                      flex: 1,
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    {cat}
-                  </span>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 4 }}
-                  >
-                    <span style={{ fontSize: 14, color: "#333" }}>$</span>
+                <div key={cat} className={styles.categoryRow}>
+                  <span className={styles.categoryIcon}>{config.icon}</span>
+                  <span className={styles.categoryName}>{cat}</span>
+                  <div className={styles.categoryAmount}>
+                    <span className={styles.categorySign}>$</span>
                     <input
                       type="number"
                       placeholder="—"
                       value={catBudgets[cat] || ""}
                       onChange={(e) => setCat(cat, e.target.value)}
-                      style={{
-                        width: 80,
-                        background: "none",
-                        border: "none",
-                        outline: "none",
-                        color: "#fff",
-                        fontSize: 16,
-                        fontWeight: 600,
-                        fontFamily: "Inter, sans-serif",
-                        textAlign: "right",
-                      }}
+                      className={styles.categoryInput}
                     />
                   </div>
                 </div>
@@ -247,20 +105,7 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
         <button
           onClick={save}
           disabled={saving}
-          style={{
-            width: "100%",
-            marginTop: 32,
-            padding: "16px",
-            background: "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)",
-            border: "none",
-            borderRadius: 14,
-            color: "#fff",
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: "pointer",
-            fontFamily: "Inter, sans-serif",
-            opacity: saving ? 0.7 : 1,
-          }}
+          className={`${styles.submitBtn} ${saving ? styles.submitBtnSaving : ""}`}
         >
           {saving ? "Saving..." : "Save budget"}
         </button>

@@ -1,0 +1,169 @@
+.emptyDayNumber {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: absolute;
+  top: 4px;
+  left: 5px;
+}
+
+.dayNumber {
+  font-size: 10px;
+  font-weight: 700;
+  color: #222;
+}
+
+.dayNumberToday {
+  color: #f97316;
+}
+
+.todayDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #f97316;
+  margin-top: 2px;
+}
+
+.ringWrap {
+  border-radius: 9px;
+  min-height: 56px;
+  position: relative;
+  padding: 1.5px;
+  cursor: pointer;
+}
+
+.ringWrapToday {
+  padding: 2px;
+  box-shadow: 0 0 0 1.5px #f97316;
+}
+
+.ringGradLow {
+  background: linear-gradient(135deg, #f97316, #ec4899);
+}
+
+.ringGradMid {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+.ringGradHigh {
+  background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
+}
+
+.inner {
+  background: #000;
+  border-radius: 8px;
+  height: 100%;
+  min-height: 53px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stackLayer {
+  position: absolute;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.stackLayer0 {
+  top: 5px;
+  left: 5px;
+  right: -5px;
+  bottom: -5px;
+  transform: rotate(5deg);
+  z-index: 1;
+  opacity: 0.6;
+}
+
+.stackLayer1 {
+  top: 3px;
+  left: 3px;
+  right: -3px;
+  bottom: -3px;
+  transform: rotate(2deg);
+  z-index: 2;
+  opacity: 0.8;
+}
+
+.stackLayer2 {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: rotate(0deg);
+  z-index: 3;
+  opacity: 1;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.photoShade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 35%, rgba(0, 0, 0, 0.8));
+}
+
+.dayNumberOverlay {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.dayNumberOverlayText {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dayNumberOverlayTextToday {
+  color: #f97316;
+}
+
+.overlayTodayDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #f97316;
+  margin-top: 1px;
+}
+
+.countBadge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 10;
+  background: rgba(236, 72, 153, 0.85);
+  border-radius: 4px;
+  padding: 1px 3px;
+  font-size: 7px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.amount {
+  position: absolute;
+  bottom: 3px;
+  left: 4px;
+  z-index: 10;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+}

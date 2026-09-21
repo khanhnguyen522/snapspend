@@ -1,0 +1,129 @@
+/* Shared bottom-sheet layout used by AddModal and EditModal. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  touch-action: none;
+}
+
+.sheet {
+  background: #0a0a0a;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 480px;
+  height: 92vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #1a1a1a;
+  border-bottom: none;
+  animation: slideUp 0.25s ease;
+}
+
+.handle {
+  width: 36px;
+  height: 4px;
+  background: #222;
+  border-radius: 2px;
+  margin: 12px auto 0;
+}
+
+.sheetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.sheetTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: #f97316;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 60px;
+}
+
+.amountRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.dollarSign {
+  font-size: 30px;
+  font-weight: 300;
+  color: #222;
+}
+
+.amountInput {
+  flex: 1;
+  font-size: 38px;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  outline: none;
+  background: none;
+  letter-spacing: -0.5px;
+}
+
+.input {
+  width: 100%;
+  background: #111;
+  border: 1px solid #1a1a1a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #fff;
+  outline: none;
+  box-sizing: border-box;
+  display: block;
+}
+
+.error {
+  font-size: 12px;
+  color: #f87171;
+  background: #7f1d1d22;
+  padding: 8px 12px;
+  border-radius: 7px;
+  margin-bottom: 12px;
+  border: 1px solid #7f1d1d;
+}
+
+.saveBtn {
+  width: 100%;
+  background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.scanSpinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid #111;
+  border-top-color: #f97316;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}

@@ -2,8 +2,9 @@ import { useState } from "react";
 
 import api from "../api";
 import { toDateInputValue } from "../utils";
-import { modalStyles as m } from "../styles/modal";
+import sheet from "../styles/sheet.module.css";
 import Field from "./Field";
+import styles from "./EditModal.module.css";
 
 export default function EditModal({
   expense,
@@ -48,47 +49,33 @@ export default function EditModal({
 
   return (
     <div
-      style={m.overlay}
+      className={sheet.overlay}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div style={m.sheet}>
-        <div style={m.handle} />
-        <div style={m.sheetHeader}>
-          <button onClick={onClose} style={m.backBtn}>
+      <div className={sheet.sheet}>
+        <div className={sheet.handle} />
+        <div className={sheet.sheetHeader}>
+          <button onClick={onClose} className={sheet.backBtn}>
             Cancel
           </button>
-          <span style={m.sheetTitle2}>Edit expense</span>
+          <span className={sheet.sheetTitle}>Edit expense</span>
           <button
             onClick={save}
             disabled={saving}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 14,
-              fontWeight: 700,
-              fontFamily: "Inter, sans-serif",
-              color: saving ? "#444" : "#F97316",
-            }}
+            className={`${sheet.backBtn} ${saving ? styles.saveBtnDisabled : styles.saveBtn}`}
           >
             {saving ? "Saving..." : "Save"}
           </button>
         </div>
-        <div
-          style={{
-            padding: "16px 20px 40px",
-            overflowY: "auto",
-            maxHeight: "75vh",
-          }}
-        >
-          <div style={m.amountRow}>
-            <span style={m.dollarSign}>$</span>
+        <div className={styles.content}>
+          <div className={sheet.amountRow}>
+            <span className={sheet.dollarSign}>$</span>
             <input
               type="number"
               autoFocus
               value={form.amount}
               onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              style={m.amountInput}
+              className={sheet.amountInput}
             />
           </div>
           <Field label="Where">
@@ -97,17 +84,15 @@ export default function EditModal({
               placeholder="Gong Cha, 7-Eleven..."
               value={form.store_name}
               onChange={(e) => setForm({ ...form, store_name: e.target.value })}
-              style={m.input}
+              className={sheet.input}
             />
           </Field>
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
-          >
+          <div className={styles.fieldRow}>
             <Field label="Category">
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
-                style={m.input}
+                className={sheet.input}
               >
                 {(categories || []).map((c) => (
                   <option key={c.id} value={c.id}>
@@ -121,7 +106,7 @@ export default function EditModal({
                 type="date"
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
-                style={m.input}
+                className={sheet.input}
               />
             </Field>
           </div>
@@ -131,10 +116,10 @@ export default function EditModal({
               placeholder="What was this for?"
               value={form.note}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
-              style={m.input}
+              className={sheet.input}
             />
           </Field>
-          {error && <div style={m.error}>{error}</div>}
+          {error && <div className={sheet.error}>{error}</div>}
         </div>
       </div>
     </div>

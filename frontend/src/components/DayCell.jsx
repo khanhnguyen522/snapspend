@@ -1,10 +1,17 @@
-import { calendarStyles as cal } from "../styles/calendar";
+import calendarStyles from "../styles/calendar.module.css";
 import { fmt, getCat } from "../utils";
+import styles from "./DayCell.module.css";
 
-const getRingGradient = (count) => {
-  if (count >= 3) return "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)";
-  if (count === 2) return "linear-gradient(135deg,#8B5CF6,#6D28D9)";
-  return "linear-gradient(135deg,#F97316,#EC4899)";
+const STACK_LAYER_CLASSES = [
+  styles.stackLayer0,
+  styles.stackLayer1,
+  styles.stackLayer2,
+];
+
+const getRingGradClass = (count) => {
+  if (count >= 3) return styles.ringGradHigh;
+  if (count === 2) return styles.ringGradMid;
+  return styles.ringGradLow;
 };
 
 export default function DayCell({ day, expenses, onClick, isToday }) {
@@ -14,53 +21,21 @@ export default function DayCell({ day, expenses, onClick, isToday }) {
   const total = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
   const count = expenses.length;
   const stackCount = Math.min(count, 3);
-
-  const stackOffsets = [
-    { rotate: "5deg", top: 5, left: 5, zIndex: 1, opacity: 0.6 },
-    { rotate: "2deg", top: 3, left: 3, zIndex: 2, opacity: 0.8 },
-    { rotate: "0deg", top: 0, left: 0, zIndex: 3, opacity: 1 },
-  ].slice(3 - stackCount);
+  const stackLayerClasses = STACK_LAYER_CLASSES.slice(3 - stackCount);
 
   // Empty day
   if (!hasExpenses) {
     return (
       <div
-        style={{
-          ...cal.cell,
-          cursor: "default",
-          ...(isToday ? { border: "1px solid #F97316" } : {}),
-        }}
+        className={`${calendarStyles.cell} ${isToday ? calendarStyles.cellToday : ""}`}
       >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            position: "absolute",
-            top: 4,
-            left: 5,
-          }}
-        >
+        <div className={styles.emptyDayNumber}>
           <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: isToday ? "#F97316" : "#222",
-            }}
+            className={`${styles.dayNumber} ${isToday ? styles.dayNumberToday : ""}`}
           >
             {day}
           </span>
-          {isToday && (
-            <div
-              style={{
-                width: 4,
-                height: 4,
-                borderRadius: "50%",
-                background: "#F97316",
-                marginTop: 2,
-              }}
-            />
-          )}
+          {isToday && <div className={styles.todayDot} />}
         </div>
       </div>
     );
@@ -70,157 +45,48 @@ export default function DayCell({ day, expenses, onClick, isToday }) {
   return (
     <div
       onClick={() => onClick(day, expenses)}
-      style={{
-        borderRadius: 9,
-        minHeight: 56,
-        position: "relative",
-        background: getRingGradient(count),
-        padding: isToday ? 2 : 1.5,
-        cursor: "pointer",
-        ...(isToday ? { boxShadow: "0 0 0 1.5px #F97316" } : {}),
-      }}
+      className={`${styles.ringWrap} ${getRingGradClass(count)} ${isToday ? styles.ringWrapToday : ""}`}
     >
-      <div
-        style={{
-          background: "#000",
-          borderRadius: 8,
-          height: "100%",
-          minHeight: 53,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
+      <div className={styles.inner}>
         {/* Stacked photos/cards */}
-        {stackOffsets.map((offset, i) => {
+        {stackLayerClasses.map((layerClass, i) => {
           const expIdx = expenses.length - stackCount + i;
           const exp = expenses[Math.max(0, expIdx)];
           const cat = getCat(exp?.category);
-          const isTop = i === stackOffsets.length - 1;
+          const isTop = i === stackLayerClasses.length - 1;
 
           return (
-            <div
-              key={i}
-              style={{
-                position: "absolute",
-                top: offset.top,
-                left: offset.left,
-                right: -offset.left,
-                bottom: -offset.top,
-                borderRadius: 7,
-                overflow: "hidden",
-                transform: `rotate(${offset.rotate})`,
-                zIndex: offset.zIndex,
-                opacity: offset.opacity,
-              }}
-            >
+            <div key={i} className={`${styles.stackLayer} ${layerClass}`}>
               {exp?.photo_url ? (
-                <img
-                  src={exp.photo_url}
-                  alt=""
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
+                <img src={exp.photo_url} alt="" className={styles.photo} />
               ) : (
                 <div
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    background: cat.color + "22",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 16,
-                  }}
+                  className={styles.photoFallback}
+                  style={{ background: cat.color + "22" }}
                 >
                   {cat.icon}
                 </div>
               )}
-              {isTop && (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                      "linear-gradient(transparent 35%, rgba(0,0,0,0.8))",
-                  }}
-                />
-              )}
+              {isTop && <div className={styles.photoShade} />}
             </div>
           );
         })}
 
         {/* Day number */}
-        <div
-          style={{
-            position: "absolute",
-            top: 3,
-            left: 4,
-            zIndex: 10,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-          }}
-        >
+        <div className={styles.dayNumberOverlay}>
           <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: isToday ? "#F97316" : "rgba(255,255,255,0.9)",
-            }}
+            className={`${styles.dayNumberOverlayText} ${isToday ? styles.dayNumberOverlayTextToday : ""}`}
           >
             {day}
           </span>
-          {isToday && (
-            <div
-              style={{
-                width: 4,
-                height: 4,
-                borderRadius: "50%",
-                background: "#F97316",
-                marginTop: 1,
-              }}
-            />
-          )}
+          {isToday && <div className={styles.overlayTodayDot} />}
         </div>
 
         {/* Count badge */}
-        {count > 1 && (
-          <div
-            style={{
-              position: "absolute",
-              top: 3,
-              right: 3,
-              zIndex: 10,
-              background: "rgba(236,72,153,0.85)",
-              borderRadius: 4,
-              padding: "1px 3px",
-              fontSize: 7,
-              color: "#fff",
-              fontWeight: 700,
-            }}
-          >
-            {count}
-          </div>
-        )}
+        {count > 1 && <div className={styles.countBadge}>{count}</div>}
 
         {/* Amount */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 3,
-            left: 4,
-            zIndex: 10,
-            fontSize: 9,
-            fontWeight: 700,
-            color: "#fff",
-          }}
-        >
-          {fmt(total)}
-        </div>
+        <div className={styles.amount}>{fmt(total)}</div>
       </div>
     </div>
   );

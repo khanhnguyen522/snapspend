@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { API_BASE_URL } from "../api";
 import { fmtDate } from "../utils";
+import styles from "./DaySheet.module.css";
 import EditModal from "./EditModal";
 
 export default function DaySheet({
@@ -101,23 +102,12 @@ export default function DaySheet({
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 300,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        justifyContent: "center",
-      }}
+      className={styles.overlay}
       onClick={(ev) => ev.target === ev.currentTarget && onClose()}
     >
       <div
+        className={styles.sheet}
         style={{
-          width: "100%",
-          maxWidth: 480,
-          background: "#000",
-          display: "flex",
-          flexDirection: "column",
           transform: `translateY(${dragY}px)`,
           transition: dragging ? "none" : "transform 0.3s ease",
         }}
@@ -126,221 +116,76 @@ export default function DaySheet({
         onTouchEnd={onTouchEnd}
       >
         {/* Photo */}
-        <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        <div className={styles.photoArea}>
           {photoUrl ? (
-            <img
-              src={photoUrl}
-              alt=""
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-              }}
-            />
+            <img src={photoUrl} alt="" className={styles.photo} />
           ) : (
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                background: "#0A0A0A",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <span style={{ fontSize: 48 }}>{bucket?.icon || "📄"}</span>
+            <div className={styles.photoFallback}>
+              <span className={styles.photoFallbackIcon}>
+                {bucket?.icon || "📄"}
+              </span>
             </div>
           )}
 
           {/* Top bar */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              background: "linear-gradient(rgba(0,0,0,0.6),transparent)",
-              padding: "52px 20px 40px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <button
-                onClick={onClose}
-                style={{
-                  background: "rgba(0,0,0,0.4)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  borderRadius: 20,
-                  width: 36,
-                  height: 36,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  color: "#fff",
-                  fontSize: 16,
-                }}
-              >
+          <div className={styles.topBar}>
+            <div className={styles.topBarRow}>
+              <button onClick={onClose} className={styles.closeBtn}>
                 ✕
               </button>
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
+              <span className={styles.topBarLabel}>
                 {current + 1} / {expenses.length} · {dateStr}
               </span>
-              <div style={{ width: 36 }} />
+              <div className={styles.topBarSpacer} />
             </div>
           </div>
           {/* Left/right tap zones for desktop */}
           {current > 0 && (
             <div
               onClick={() => setCurrent((c) => c - 1)}
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: "35%",
-                cursor: "pointer",
-                zIndex: 10,
-              }}
+              className={styles.tapZoneLeft}
             />
           )}
           {current < expenses.length - 1 && (
             <div
               onClick={() => setCurrent((c) => c + 1)}
-              style={{
-                position: "absolute",
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: "35%",
-                cursor: "pointer",
-                zIndex: 10,
-              }}
+              className={styles.tapZoneRight}
             />
           )}
           {/* Dot indicators */}
           {expenses.length > 1 && (
-            <div
-              style={{
-                position: "absolute",
-                top: 110,
-                left: 0,
-                right: 0,
-                display: "flex",
-                justifyContent: "center",
-                gap: 4,
-              }}
-            >
+            <div className={styles.dots}>
               {expenses.map((_, i) => (
                 <div
                   key={i}
-                  style={{
-                    width: i === current ? 16 : 4,
-                    height: 4,
-                    borderRadius: 2,
-                    background:
-                      i === current ? "#fff" : "rgba(255,255,255,0.3)",
-                    transition: "width 0.2s",
-                  }}
+                  className={`${styles.dot} ${i === current ? styles.dotActive : ""}`}
                 />
               ))}
             </div>
           )}
 
           {/* Bottom info */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              background: "linear-gradient(transparent, rgba(0,0,0,0.95))",
-              padding: "60px 20px 28px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 42,
-                fontWeight: 800,
-                color: "#fff",
-                letterSpacing: "-1px",
-                marginBottom: 4,
-              }}
-            >
+          <div className={styles.bottomInfo}>
+            <div className={styles.amount}>
               ${parseFloat(e?.amount || 0).toFixed(2)}
             </div>
-            <div
-              style={{
-                fontSize: 16,
-                color: "rgba(255,255,255,0.7)",
-                marginBottom: 12,
-              }}
-            >
-              {e?.store_name || "Expense"}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                flexWrap: "wrap",
-              }}
-            >
+            <div className={styles.storeName}>{e?.store_name || "Expense"}</div>
+            <div className={styles.tagRow}>
               {bucket && (
-                <span
-                  style={{
-                    fontSize: 12,
-                    background: "rgba(255,255,255,0.15)",
-                    borderRadius: 20,
-                    padding: "4px 10px",
-                    color: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
+                <span className={styles.bucketTag}>
                   {bucket.icon} {bucket.name}
                 </span>
               )}
-              {e?.note && (
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
-                  {e.note}
-                </span>
-              )}
+              {e?.note && <span className={styles.noteTag}>{e.note}</span>}
             </div>
           </div>
         </div>
 
         {/* Action buttons */}
-        <div
-          style={{
-            background: "#000",
-            padding: "16px 20px 40px",
-            display: "flex",
-            gap: 12,
-            borderTop: "1px solid #111",
-          }}
-        >
+        <div className={styles.actions}>
           <button
             onClick={() => setShowEdit(true)}
-            style={{
-              flex: 1,
-              background: "#111",
-              border: "1px solid #1A1A1A",
-              borderRadius: 12,
-              padding: "14px",
-              color: "#fff",
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
-              fontFamily: "Inter, sans-serif",
-            }}
+            className={`${styles.actionBtn} ${styles.editBtn}`}
           >
             Edit
           </button>
@@ -349,18 +194,7 @@ export default function DaySheet({
               await onDelete(e.id);
               setToast("Deleted");
             }}
-            style={{
-              flex: 1,
-              background: "#7F1D1D22",
-              border: "1px solid #7F1D1D",
-              borderRadius: 12,
-              padding: "14px",
-              color: "#F87171",
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
-              fontFamily: "Inter, sans-serif",
-            }}
+            className={`${styles.actionBtn} ${styles.deleteBtn}`}
           >
             Delete
           </button>

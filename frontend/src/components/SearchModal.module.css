@@ -1,0 +1,149 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.2s ease;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 52px 16px 16px;
+  border-bottom: 1px solid #111;
+  flex-shrink: 0;
+}
+
+.searchInputWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #111;
+  border-radius: 12px;
+  padding: 10px 14px;
+  border: 1px solid #1a1a1a;
+}
+
+.searchInput {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 15px;
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  color: #444;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.cancelBtn {
+  background: none;
+  border: none;
+  color: #f97316;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px 40px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.emptyIcon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: #444;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #0a0a0a;
+  cursor: pointer;
+}
+
+.resultPhoto {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.resultPhotoFallback {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.resultInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.resultStore {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.resultNote {
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 3px;
+  font-style: italic;
+}
+
+.resultMeta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.resultCategory {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-weight: 500;
+}
+
+.resultDate {
+  font-size: 11px;
+  color: #444;
+}
+
+.resultAmount {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}

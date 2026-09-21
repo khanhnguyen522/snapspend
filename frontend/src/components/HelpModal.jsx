@@ -1,3 +1,5 @@
+import styles from "./HelpModal.module.css";
+
 export default function HelpModal({ onClose }) {
   const sections = [
     {
@@ -29,109 +31,27 @@ export default function HelpModal({ onClose }) {
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 3000,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-end",
-        fontFamily: "Inter, sans-serif",
-      }}
+      className={styles.overlay}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 480,
-          maxHeight: "85vh",
-          overflowY: "auto",
-          background: "#000",
-          borderRadius: "20px 20px 0 0",
-          animation: "slideUp 0.2s ease",
-          boxSizing: "border-box",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "24px 20px 16px",
-            borderBottom: "1px solid #111",
-            position: "sticky",
-            top: 0,
-            background: "#000",
-          }}
-        >
-          <span style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>
-            How Snapspend works
-          </span>
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#555",
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
-              fontFamily: "Inter, sans-serif",
-            }}
-          >
+      <div className={styles.sheet}>
+        <div className={styles.header}>
+          <span className={styles.title}>How Snapspend works</span>
+          <button onClick={onClose} className={styles.doneBtn}>
             Done
           </button>
         </div>
 
-        <div style={{ padding: "16px 20px 40px" }}>
+        <div className={styles.sections}>
           {sections.map((s, i) => (
             <div
               key={i}
-              style={{
-                display: "flex",
-                gap: 14,
-                padding: "16px 0",
-                borderBottom:
-                  i < sections.length - 1 ? "1px solid #111" : "none",
-              }}
+              className={`${styles.section} ${i === sections.length - 1 ? styles.sectionLast : ""}`}
             >
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  background: "#0A0A0A",
-                  border: "1px solid #1A1A1A",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 20,
-                  flexShrink: 0,
-                }}
-              >
-                {s.icon}
-              </div>
+              <div className={styles.iconBox}>{s.icon}</div>
               <div>
-                <p
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: "#fff",
-                    marginBottom: 4,
-                  }}
-                >
-                  {s.title}
-                </p>
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: "#888",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {s.body}
-                </p>
+                <p className={styles.sectionTitle}>{s.title}</p>
+                <p className={styles.sectionBody}>{s.body}</p>
               </div>
             </div>
           ))}

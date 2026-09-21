@@ -1,0 +1,510 @@
+/* --- Page shell --- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+}
+
+.panel {
+  width: 100%;
+  max-width: 480px;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  padding: 52px 20px 14px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #111;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.monthNavBtn {
+  background: none;
+  border: none;
+  color: #444;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 8px;
+}
+
+.monthNavLabel {
+  font-size: 13px;
+  color: #666;
+  min-width: 90px;
+  text-align: center;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 100px;
+}
+
+.gaugeCard {
+  background: #0a0a0a;
+  border-radius: 20px;
+  margin: 16px 0 8px;
+  border: 1px solid #1a1a1a;
+  overflow: hidden;
+}
+
+.gaugeFooter {
+  padding: 8px 20px 14px;
+  border-top: 1px solid #111;
+}
+
+.gaugeFooterText {
+  font-size: 12px;
+  color: #333;
+}
+
+.bucketsHeader {
+  margin-top: 20px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bucketsLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.addBucketBtn {
+  background: linear-gradient(135deg, #f97316, #ec4899);
+  border: none;
+  border-radius: 20px;
+  padding: 5px 14px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.emptyBuckets {
+  text-align: center;
+  padding: 40px 20px;
+  background: #0a0a0a;
+  border-radius: 16px;
+  border: 1px solid #1a1a1a;
+}
+
+.emptyBucketsIcon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.emptyBucketsTitle {
+  font-size: 15px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.emptyBucketsHint {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.emptyBucketsCta {
+  background: linear-gradient(135deg, #f97316, #ec4899);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bucketList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* --- GaugeChart --- */
+.gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 20px 0;
+}
+
+.gaugeRing {
+  position: relative;
+  width: 220px;
+  height: 125px;
+}
+
+.gaugeTrack {
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+.gaugeCenter {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.noBudgetText {
+  font-size: 13px;
+  color: #444;
+}
+
+.statusBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.statusBadgeOver {
+  color: #ef4444;
+  background: #ef444420;
+}
+
+.statusBadgeAlmost {
+  color: #fbbf24;
+  background: #fbbf2420;
+}
+
+.statusBadgeOnTrack {
+  color: #34d399;
+  background: #34d39920;
+}
+
+.gaugePct {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.gaugeSummary {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 20px 4px 20px;
+}
+
+.gaugeSummaryLabel {
+  font-size: 11px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.gaugeSpentValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.gaugeSpentValueOver {
+  color: #ef4444;
+}
+
+.gaugeRemainingRight {
+  text-align: right;
+}
+
+.gaugeRemainingValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: #34d399;
+}
+
+.gaugeRemainingValueOver {
+  color: #ef4444;
+}
+
+.gaugeBudgetTotal {
+  font-size: 11px;
+  color: #333;
+}
+
+/* --- ReassignModal --- */
+.reassignOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.reassignSheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #000;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 36px;
+  animation: slideUp 0.2s ease;
+  box-sizing: border-box;
+}
+
+.reassignTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.reassignHint {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.reassignWarning {
+  font-size: 13px;
+  color: #f87171;
+  margin-bottom: 20px;
+}
+
+.reassignSelect {
+  width: 100%;
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 15px;
+  color: #fff;
+  outline: none;
+  margin-bottom: 20px;
+}
+
+.reassignActions {
+  display: flex;
+  gap: 10px;
+}
+
+.reassignCancelBtn {
+  flex: 1;
+  padding: 14px;
+  background: #111;
+  border: none;
+  border-radius: 12px;
+  color: #888;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reassignConfirmBtn {
+  flex: 1;
+  padding: 14px;
+  background: #111;
+  border: none;
+  border-radius: 12px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reassignConfirmBtnActive {
+  background: linear-gradient(135deg, #f97316, #ec4899);
+  color: #fff;
+}
+
+/* --- BucketCard --- */
+.bucketCard {
+  background: #0a0a0a;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid #1a1a1a;
+}
+
+.bucketCardClickable {
+  cursor: pointer;
+}
+
+.bucketCardTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bucketCardIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.bucketCardMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.bucketCardName {
+  font-size: 15px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.bucketCardStatus {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.bucketCardStatusOver {
+  color: #ef444488;
+}
+
+.bucketCardStatusOk {
+  color: #34d39988;
+}
+
+.bucketCardAmounts {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.bucketCardSpent {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.bucketCardSpentOver {
+  color: #ef4444;
+}
+
+.bucketCardBudgetTotal {
+  font-size: 11px;
+  color: #333;
+  margin-top: 2px;
+}
+
+.bucketCardChevron {
+  color: #333;
+  font-size: 12px;
+  flex-shrink: 0;
+  padding: 0 4px;
+  transition: transform 0.2s ease;
+}
+
+.bucketCardChevronOpen {
+  transform: rotate(180deg);
+}
+
+.bucketCardDeleteBtn {
+  background: none;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 0 0 0 8px;
+  flex-shrink: 0;
+}
+
+.progressTrack {
+  margin-top: 12px;
+  height: 4px;
+  background: #1a1a1a;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.progressFillOk {
+  background: #f97316;
+}
+
+.progressFillWarn {
+  background: #fbbf24;
+}
+
+.progressFillOver {
+  background: #ef4444;
+}
+
+.bucketItems {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bucketItemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.bucketItemInfo {
+  min-width: 0;
+}
+
+.bucketItemStore {
+  font-size: 13px;
+  color: #ccc;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bucketItemMeta {
+  font-size: 11px;
+  color: #444;
+  margin-top: 1px;
+}
+
+.bucketItemAmount {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+}

@@ -10,8 +10,8 @@ import OverviewPage from "./components/OverviewPage";
 import SearchModal from "./components/SearchModal";
 import Toast from "./components/Toast";
 import { DAYS, MONTHS } from "./constants";
-import { appStyles as s } from "./styles/app";
-import { calendarStyles as cal } from "./styles/calendar";
+import styles from "./App.module.css";
+import calendarStyles from "./styles/calendar.module.css";
 import { parseLocalDate } from "./utils";
 
 const NOW_MONTH = new Date().getMonth();
@@ -205,80 +205,36 @@ export default function App() {
       )
     : [];
 
-  const getMonthRingStyle = (i) => {
+  const getMonthRingClass = (i) => {
     const isActive = i === month;
     const hasExp = expenses.some((e) => {
       const d = parseLocalDate(e.date);
       return d && d.getMonth() === i && d.getFullYear() === year;
     });
-    if (isActive) return s.monthRingActive;
-    if (hasExp) return s.monthRingHasExp;
-    return s.monthRingInactive;
+    if (isActive) return styles.monthRingActive;
+    if (hasExp) return styles.monthRingHasExp;
+    return styles.monthRingInactive;
   };
 
   return (
-    <div style={s.root}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #000; font-family: 'Inter', sans-serif; }
-        input, select, button { font-family: 'Inter', sans-serif; }
-        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
-        @keyframes fadeUp { from { opacity:0; transform: translateX(-50%) translateY(8px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
-        @keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: none; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-        select { appearance: none; }
-        .month-strip::-webkit-scrollbar { display: none; }
-        .month-strip { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
-
+    <div className={styles.root}>
       {activeTab === "calendar" && (
-        <div style={s.container}>
-          <div style={s.header}>
+        <div className={styles.container}>
+          <div className={styles.header}>
             <div>
-              <h1 style={s.logo}>snapspend</h1>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "#666",
-                  marginTop: 3,
-                  fontWeight: 500,
-                }}
-              >
-                Hi, {user?.name}
-              </p>
+              <h1 className={styles.logo}>snapspend</h1>
+              <p className={styles.greeting}>Hi, {user?.name}</p>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className={styles.headerActions}>
               <button
                 onClick={() => setShowHelp(true)}
-                style={{
-                  background: "none",
-                  border: "1px solid #333",
-                  borderRadius: "50%",
-                  width: 24,
-                  height: 24,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  padding: 0,
-                  color: "#666",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  fontFamily: "Inter, sans-serif",
-                }}
+                className={styles.helpBtn}
               >
                 ?
               </button>
               <button
                 onClick={() => setShowSearch(true)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 4,
-                }}
+                className={styles.iconBtn}
               >
                 <svg
                   width="20"
@@ -294,45 +250,28 @@ export default function App() {
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
               </button>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <div className={styles.yearNav}>
                 <button
                   onClick={() => setYear((y) => y - 1)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#555",
-                    fontSize: 16,
-                    cursor: "pointer",
-                  }}
+                  className={styles.yearBtn}
                 >
                   ‹
                 </button>
-                <span style={{ fontSize: 13, color: "#555" }}>{year}</span>
+                <span className={styles.yearLabel}>{year}</span>
                 <button
                   onClick={() => setYear((y) => y + 1)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#555",
-                    fontSize: 16,
-                    cursor: "pointer",
-                  }}
+                  className={styles.yearBtn}
                 >
                   ›
                 </button>
               </div>
-              <div style={{ position: "relative" }}>
+              <div className={styles.avatarWrap}>
                 <button
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                  }}
+                  className={styles.avatarBtn}
                 >
-                  <div style={s.avatar}>
-                    <div style={s.avatarInner}>
+                  <div className={styles.avatar}>
+                    <div className={styles.avatarInner}>
                       {user?.name?.[0]?.toUpperCase() || "S"}
                     </div>
                   </div>
@@ -340,61 +279,20 @@ export default function App() {
                 {showProfileMenu && (
                   <>
                     <div
-                      style={{ position: "fixed", inset: 0, zIndex: 199 }}
+                      className={styles.menuBackdrop}
                       onClick={() => setShowProfileMenu(false)}
                     />
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 40,
-                        right: 0,
-                        zIndex: 200,
-                        background: "#111",
-                        border: "1px solid #1A1A1A",
-                        borderRadius: 12,
-                        padding: 8,
-                        minWidth: 170,
-                      }}
-                    >
-                      <div
-                        style={{
-                          padding: "8px 12px 10px",
-                          borderBottom: "1px solid #1A1A1A",
-                          marginBottom: 6,
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: "#fff",
-                          }}
-                        >
-                          {user.name}
-                        </div>
-                        <div
-                          style={{ fontSize: 11, color: "#444", marginTop: 2 }}
-                        >
-                          {user.email}
-                        </div>
+                    <div className={styles.profileMenu}>
+                      <div className={styles.profileMenuHeader}>
+                        <div className={styles.profileName}>{user.name}</div>
+                        <div className={styles.profileEmail}>{user.email}</div>
                       </div>
                       <button
                         onClick={() => {
                           setShowProfileMenu(false);
                           logout();
                         }}
-                        style={{
-                          width: "100%",
-                          background: "none",
-                          border: "none",
-                          color: "#F87171",
-                          fontSize: 13,
-                          padding: "10px 12px",
-                          textAlign: "left",
-                          cursor: "pointer",
-                          borderRadius: 8,
-                          fontFamily: "Inter, sans-serif",
-                        }}
+                        className={styles.signOutBtn}
                       >
                         Sign out
                       </button>
@@ -405,24 +303,24 @@ export default function App() {
             </div>
           </div>
 
-          <div ref={monthStripRef} className="month-strip" style={s.monthStrip}>
+          <div ref={monthStripRef} className={styles.monthStrip}>
             {MONTHS.map((m, i) => {
               const isActive = i === month;
               const isToday = i === NOW_MONTH && year === NOW_YEAR;
-              const ringStyle = getMonthRingStyle(i);
+              const ringClass = getMonthRingClass(i);
               return (
                 <div
                   key={m}
                   data-active={isActive}
-                  style={s.monthItem}
+                  className={styles.monthItem}
                   onClick={() => setMonth(i)}
                 >
-                  <div style={ringStyle}>
+                  <div className={ringClass}>
                     <div
-                      style={
-                        isActive || ringStyle === s.monthRingHasExp
-                          ? s.monthInnerActive
-                          : s.monthInnerInactive
+                      className={
+                        isActive || ringClass === styles.monthRingHasExp
+                          ? styles.monthInnerActive
+                          : styles.monthInnerInactive
                       }
                     >
                       {m.slice(0, 3)}
@@ -430,13 +328,11 @@ export default function App() {
                   </div>
                   {isToday && (
                     <div
-                      style={{
-                        width: 4,
-                        height: 4,
-                        borderRadius: "50%",
-                        background: isActive ? "#F97316" : "#555",
-                        marginTop: 2,
-                      }}
+                      className={`${styles.todayDot} ${
+                        isActive
+                          ? styles.todayDotActive
+                          : styles.todayDotInactive
+                      }`}
                     />
                   )}
                 </div>
@@ -444,9 +340,9 @@ export default function App() {
             })}
           </div>
 
-          <div style={cal.grid}>
+          <div className={calendarStyles.grid}>
             {DAYS.map((d) => (
-              <div key={d} style={cal.dayLabel}>
+              <div key={d} className={calendarStyles.dayLabel}>
                 {d}
               </div>
             ))}
@@ -483,8 +379,11 @@ export default function App() {
         />
       )}
 
-      <div style={s.bottomBar}>
-        <button style={s.tabBtn} onClick={() => setActiveTab("calendar")}>
+      <div className={styles.bottomBar}>
+        <button
+          className={styles.tabBtn}
+          onClick={() => setActiveTab("calendar")}
+        >
           <svg
             width="24"
             height="24"
@@ -500,14 +399,12 @@ export default function App() {
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          {activeTab === "calendar" && (
-            <div style={{ ...s.tabDot, background: "#F97316" }} />
-          )}
+          {activeTab === "calendar" && <div className={styles.tabDot} />}
         </button>
 
         <>
           <button
-            style={s.fabBtn}
+            className={styles.fabBtn}
             onClick={() => {
               setGalleryFile(null);
               setShowAdd(true);
@@ -531,7 +428,7 @@ export default function App() {
             ref={galleryRef}
             type="file"
             accept="image/*"
-            style={{ display: "none" }}
+            className={styles.hiddenInput}
             onChange={(e) => {
               if (e.target.files[0]) {
                 setGalleryFile(e.target.files[0]);
@@ -541,7 +438,10 @@ export default function App() {
           />
         </>
 
-        <button style={s.tabBtn} onClick={() => setActiveTab("overview")}>
+        <button
+          className={styles.tabBtn}
+          onClick={() => setActiveTab("overview")}
+        >
           <svg
             width="24"
             height="24"
@@ -556,9 +456,7 @@ export default function App() {
             <line x1="12" y1="20" x2="12" y2="4" />
             <line x1="6" y1="20" x2="6" y2="14" />
           </svg>
-          {activeTab === "overview" && (
-            <div style={{ ...s.tabDot, background: "#F97316" }} />
-          )}
+          {activeTab === "overview" && <div className={styles.tabDot} />}
         </button>
       </div>
 

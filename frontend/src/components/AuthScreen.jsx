@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import api from "../api";
+import styles from "./AuthScreen.module.css";
 
 export default function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("login");
@@ -32,111 +33,51 @@ export default function AuthScreen({ onLogin }) {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "#000",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "0 24px",
-        fontFamily: "Inter, sans-serif",
-        touchAction: "none",
-        overscrollBehavior: "none",
-      }}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { background: #000 !important; overflow: hidden; height: 100%; }
-      `}</style>
-
-      {/* Logo */}
-      <div style={{ marginBottom: 48, textAlign: "center" }}>
-        <h1
-          style={{
-            fontSize: 32,
-            fontWeight: 700,
-            color: "#fff",
-            letterSpacing: "-1px",
-            marginBottom: 8,
-          }}
-        >
-          snapspend
-        </h1>
-        <p style={{ fontSize: 14, color: "#444" }}>
-          Your photo expense tracker
-        </p>
+    <div className={styles.screen}>
+      <div className={styles.logoBlock}>
+        <h1 className={styles.logoTitle}>snapspend</h1>
+        <p className={styles.logoSubtitle}>Your photo expense tracker</p>
       </div>
 
-      {/* Form */}
-      <div style={{ width: "100%", maxWidth: 360 }}>
+      <div className={styles.form}>
         {mode === "register" && (
-          <div style={{ marginBottom: 12 }}>
+          <div className={styles.fieldGap}>
             <input
               type="text"
               placeholder="Your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              style={inputStyle}
+              className={styles.input}
             />
           </div>
         )}
-        <div style={{ marginBottom: 12 }}>
+        <div className={styles.fieldGap}>
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={inputStyle}
+            className={styles.input}
             onKeyDown={(e) => e.key === "Enter" && submit()}
           />
         </div>
-        <div style={{ marginBottom: 20 }}>
+        <div className={styles.fieldGapLarge}>
           <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={inputStyle}
+            className={styles.input}
             onKeyDown={(e) => e.key === "Enter" && submit()}
           />
         </div>
 
-        {error && (
-          <div
-            style={{
-              fontSize: 13,
-              color: "#F87171",
-              background: "#7F1D1D22",
-              padding: "10px 14px",
-              borderRadius: 10,
-              marginBottom: 16,
-              border: "1px solid #7F1D1D",
-            }}
-          >
-            {error}
-          </div>
-        )}
+        {error && <div className={styles.error}>{error}</div>}
 
         <button
           onClick={submit}
           disabled={loading}
-          style={{
-            width: "100%",
-            padding: "14px",
-            background: "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)",
-            border: "none",
-            borderRadius: 14,
-            color: "#fff",
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: "pointer",
-            fontFamily: "Inter, sans-serif",
-            opacity: loading ? 0.7 : 1,
-          }}
+          className={`${styles.submitBtn} ${loading ? styles.submitBtnLoading : ""}`}
         >
           {loading ? "..." : mode === "login" ? "Sign in" : "Create account"}
         </button>
@@ -146,16 +87,7 @@ export default function AuthScreen({ onLogin }) {
             setMode(mode === "login" ? "register" : "login");
             setError("");
           }}
-          style={{
-            width: "100%",
-            marginTop: 16,
-            background: "none",
-            border: "none",
-            color: "#555",
-            fontSize: 14,
-            cursor: "pointer",
-            fontFamily: "Inter, sans-serif",
-          }}
+          className={styles.toggleModeBtn}
         >
           {mode === "login"
             ? "Don't have an account? Sign up"
@@ -165,17 +97,3 @@ export default function AuthScreen({ onLogin }) {
     </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  background: "#111",
-  border: "1px solid #1A1A1A",
-  borderRadius: 12,
-  padding: "14px 16px",
-  fontSize: 15,
-  color: "#fff",
-  outline: "none",
-  fontFamily: "Inter, sans-serif",
-  boxSizing: "border-box",
-  display: "block",
-};

@@ -1,0 +1,198 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 480px;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.photoArea {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoFallback {
+  width: 100%;
+  height: 100%;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photoFallbackIcon {
+  font-size: 48px;
+}
+
+.topBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), transparent);
+  padding: 52px 20px 40px;
+}
+
+.topBarRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.closeBtn {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  font-size: 16px;
+}
+
+.topBarLabel {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.topBarSpacer {
+  width: 36px;
+}
+
+.tapZoneLeft {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.tapZoneRight {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.dots {
+  position: absolute;
+  top: 110px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  transition: width 0.2s;
+}
+
+.dotActive {
+  width: 16px;
+  background: #fff;
+}
+
+.bottomInfo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.95));
+  padding: 60px 20px 28px;
+}
+
+.amount {
+  font-size: 42px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+
+.storeName {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 12px;
+}
+
+.tagRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bucketTag {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 4px 10px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.noteTag {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.actions {
+  background: #000;
+  padding: 16px 20px 40px;
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid #111;
+}
+
+.actionBtn {
+  flex: 1;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.editBtn {
+  background: #111;
+  border: 1px solid #1a1a1a;
+  color: #fff;
+}
+
+.deleteBtn {
+  background: #7f1d1d22;
+  border: 1px solid #7f1d1d;
+  color: #f87171;
+}

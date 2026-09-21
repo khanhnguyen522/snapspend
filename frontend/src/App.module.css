@@ -1,0 +1,301 @@
+.root {
+  min-height: 100vh;
+  background: #000;
+  padding-bottom: 90px;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 44px 16px 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-top: 8px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.greeting {
+  font-size: 13px;
+  color: #666;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.helpBtn {
+  background: none;
+  border: 1px solid #333;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  color: #666;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.yearNav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.yearBtn {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.yearLabel {
+  font-size: 13px;
+  color: #555;
+}
+
+.avatarWrap {
+  position: relative;
+}
+
+.avatarBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarInner {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.menuBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+}
+
+.profileMenu {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  z-index: 200;
+  background: #111;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 8px;
+  min-width: 170px;
+}
+
+.profileMenuHeader {
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid #1a1a1a;
+  margin-bottom: 6px;
+}
+
+.profileName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.profileEmail {
+  font-size: 11px;
+  color: #444;
+  margin-top: 2px;
+}
+
+.signOutBtn {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 13px;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.monthStrip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  padding: 2px 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.monthStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.monthItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.monthRingActive,
+.monthRingInactive,
+.monthRingHasExp {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.monthRingActive {
+  background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
+  padding: 2.5px;
+}
+
+.monthRingInactive {
+  background: #111;
+}
+
+.monthRingHasExp {
+  background: linear-gradient(135deg, #f97316, #ec4899);
+  padding: 2px;
+}
+
+.monthInnerActive,
+.monthInnerInactive {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.monthInnerActive {
+  background: #000;
+  font-weight: 700;
+  color: #fff;
+}
+
+.monthInnerInactive {
+  background: #111;
+  font-weight: 500;
+  color: #444;
+}
+
+.todayDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+.todayDotActive {
+  background: #f97316;
+}
+
+.todayDotInactive {
+  background: #555;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background: #000;
+  border-top: 0.5px solid #111;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 12px 24px 28px;
+  z-index: 200;
+}
+
+.tabBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.tabDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #f97316;
+}
+
+.fabBtn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.4);
+}
+
+.hiddenInput {
+  display: none;
+}

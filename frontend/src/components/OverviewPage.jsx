@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 
 import { MONTHS } from "../constants";
 import { fmt, fmtDate } from "../utils";
+import styles from "./OverviewPage.module.css";
 import NewBucketModal from "./NewBucketModal";
 
 function GaugeChart({ pct, over, spent, budget }) {
@@ -10,17 +11,20 @@ function GaugeChart({ pct, over, spent, budget }) {
   const circumference = Math.PI * 90;
   const dashOffset = circumference - (clampedPct / 100) * circumference;
   const color = over ? "#EF4444" : pct > 80 ? "#FBBF24" : "#F97316";
+  const badgeClass = over
+    ? styles.statusBadgeOver
+    : pct > 80
+      ? styles.statusBadgeAlmost
+      : styles.statusBadgeOnTrack;
+  const badgeText = over
+    ? "OVER BUDGET"
+    : pct > 80
+      ? "ALMOST THERE"
+      : "ON TRACK";
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "28px 20px 0",
-      }}
-    >
-      <div style={{ position: "relative", width: 220, height: 125 }}>
+    <div className={styles.gauge}>
+      <div className={styles.gaugeRing}>
         <svg width="220" height="125" viewBox="0 0 220 125">
           <path
             d="M 20 110 A 90 90 0 0 1 200 110"
@@ -30,6 +34,7 @@ function GaugeChart({ pct, over, spent, budget }) {
             strokeLinecap="round"
           />
           <path
+            className={styles.gaugeTrack}
             d="M 20 110 A 90 90 0 0 1 200 110"
             fill="none"
             stroke={color}
@@ -37,119 +42,43 @@ function GaugeChart({ pct, over, spent, budget }) {
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
-            style={{ transition: "stroke-dashoffset 0.8s ease" }}
           />
         </svg>
-        <div
-          style={{
-            position: "absolute",
-            bottom: 6,
-            left: 0,
-            right: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
+        <div className={styles.gaugeCenter}>
           {budget === 0 ? (
-            <span style={{ fontSize: 13, color: "#444" }}>No budgets set</span>
+            <span className={styles.noBudgetText}>No budgets set</span>
           ) : (
             <>
-              {over && (
-                <span
-                  style={{
-                    fontSize: 10,
-                    color: "#EF4444",
-                    fontWeight: 700,
-                    background: "#EF444420",
-                    padding: "2px 10px",
-                    borderRadius: 8,
-                    marginBottom: 6,
-                  }}
-                >
-                  OVER BUDGET
-                </span>
-              )}
-              {!over && pct > 80 && (
-                <span
-                  style={{
-                    fontSize: 10,
-                    color: "#FBBF24",
-                    fontWeight: 700,
-                    background: "#FBBF2420",
-                    padding: "2px 10px",
-                    borderRadius: 8,
-                    marginBottom: 6,
-                  }}
-                >
-                  ALMOST THERE
-                </span>
-              )}
-              {!over && pct <= 80 && (
-                <span
-                  style={{
-                    fontSize: 10,
-                    color: "#34D399",
-                    fontWeight: 700,
-                    background: "#34D39920",
-                    padding: "2px 10px",
-                    borderRadius: 8,
-                    marginBottom: 6,
-                  }}
-                >
-                  ON TRACK
-                </span>
-              )}
-              <span
-                style={{
-                  fontSize: 44,
-                  fontWeight: 800,
-                  color,
-                  letterSpacing: "-2px",
-                  lineHeight: 1,
-                }}
-              >
+              <span className={`${styles.statusBadge} ${badgeClass}`}>
+                {badgeText}
+              </span>
+              <span className={styles.gaugePct} style={{ color }}>
                 {Math.round(pct)}%
               </span>
             </>
           )}
         </div>
       </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          width: "100%",
-          padding: "20px 4px 20px",
-        }}
-      >
+      <div className={styles.gaugeSummary}>
         <div>
-          <p style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>Spent</p>
+          <p className={styles.gaugeSummaryLabel}>Spent</p>
           <p
-            style={{
-              fontSize: 22,
-              fontWeight: 700,
-              color: over ? "#EF4444" : "#fff",
-            }}
+            className={`${styles.gaugeSpentValue} ${over ? styles.gaugeSpentValueOver : ""}`}
           >
             {fmt(spent)}
           </p>
         </div>
         {budget > 0 && (
-          <div style={{ textAlign: "right" }}>
-            <p style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>
+          <div className={styles.gaugeRemainingRight}>
+            <p className={styles.gaugeSummaryLabel}>
               {over ? "Over by" : "Available"}
             </p>
             <p
-              style={{
-                fontSize: 22,
-                fontWeight: 700,
-                color: over ? "#EF4444" : "#34D399",
-              }}
+              className={`${styles.gaugeRemainingValue} ${over ? styles.gaugeRemainingValueOver : ""}`}
             >
               {over ? fmt(spent - budget) : fmt(budget - spent)}
             </p>
-            <p style={{ fontSize: 11, color: "#333" }}>/ {fmt(budget)}</p>
+            <p className={styles.gaugeBudgetTotal}>/ {fmt(budget)}</p>
           </div>
         )}
       </div>
@@ -165,51 +94,22 @@ function ReassignModal({
   reassigning,
 }) {
   const [targetId, setTargetId] = useState(otherBuckets[0]?.id || "");
+  const canConfirm = targetId && !reassigning;
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 2000,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-end",
-        fontFamily: "Inter, sans-serif",
-      }}
+      className={styles.reassignOverlay}
       onClick={(e) => e.target === e.currentTarget && !reassigning && onClose()}
     >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 480,
-          maxHeight: "85vh",
-          overflowY: "auto",
-          background: "#000",
-          borderRadius: "20px 20px 0 0",
-          padding: "24px 20px 36px",
-          animation: "slideUp 0.2s ease",
-          boxSizing: "border-box",
-        }}
-      >
-        <p
-          style={{
-            fontSize: 17,
-            fontWeight: 700,
-            color: "#fff",
-            marginBottom: 8,
-          }}
-        >
-          Move expenses first
-        </p>
-        <p style={{ fontSize: 13, color: "#888", marginBottom: 20 }}>
+      <div className={styles.reassignSheet}>
+        <p className={styles.reassignTitle}>Move expenses first</p>
+        <p className={styles.reassignHint}>
           "{bucketName}" still has expenses. Pick a bucket to move them to
           before deleting.
         </p>
 
         {otherBuckets.length === 0 ? (
-          <p style={{ fontSize: 13, color: "#F87171", marginBottom: 20 }}>
+          <p className={styles.reassignWarning}>
             You need at least one other bucket to reassign to. Create one first,
             then try deleting again.
           </p>
@@ -217,18 +117,7 @@ function ReassignModal({
           <select
             value={targetId}
             onChange={(e) => setTargetId(e.target.value)}
-            style={{
-              width: "100%",
-              background: "#0A0A0A",
-              border: "1px solid #1A1A1A",
-              borderRadius: 12,
-              padding: "14px 16px",
-              fontSize: 15,
-              color: "#fff",
-              outline: "none",
-              marginBottom: 20,
-              fontFamily: "Inter, sans-serif",
-            }}
+            className={styles.reassignSelect}
           >
             {otherBuckets.map((b) => (
               <option key={b.id} value={b.id}>
@@ -238,22 +127,11 @@ function ReassignModal({
           </select>
         )}
 
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className={styles.reassignActions}>
           <button
             onClick={onClose}
             disabled={reassigning}
-            style={{
-              flex: 1,
-              padding: "14px",
-              background: "#111",
-              border: "none",
-              borderRadius: 12,
-              color: "#888",
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
-              fontFamily: "Inter, sans-serif",
-            }}
+            className={styles.reassignCancelBtn}
           >
             Cancel
           </button>
@@ -261,21 +139,7 @@ function ReassignModal({
             <button
               onClick={() => targetId && onConfirm(targetId)}
               disabled={!targetId || reassigning}
-              style={{
-                flex: 1,
-                padding: "14px",
-                background:
-                  targetId && !reassigning
-                    ? "linear-gradient(135deg,#F97316,#EC4899)"
-                    : "#111",
-                border: "none",
-                borderRadius: 12,
-                color: targetId && !reassigning ? "#fff" : "#333",
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: "pointer",
-                fontFamily: "Inter, sans-serif",
-              }}
+              className={`${styles.reassignConfirmBtn} ${canConfirm ? styles.reassignConfirmBtnActive : ""}`}
             >
               {reassigning ? "Moving..." : "Move & delete"}
             </button>
@@ -293,82 +157,50 @@ function BucketCard({ cat, spent, items = [], onDelete }) {
   const budgetPct = hasBudget ? Math.min((spent / budget) * 100, 100) : 0;
   const over = hasBudget && spent > budget;
   const remaining = budget - spent;
+  const clickable = items.length > 0;
 
   const sortedItems = [...items].sort((a, b) =>
     (b.date || "").localeCompare(a.date || ""),
   );
 
+  const progressFillClass = over
+    ? styles.progressFillOver
+    : budgetPct > 80
+      ? styles.progressFillWarn
+      : styles.progressFillOk;
+
   return (
     <div
-      style={{
-        background: "#0A0A0A",
-        borderRadius: 16,
-        padding: "16px",
-        border: "1px solid #1A1A1A",
-        cursor: items.length > 0 ? "pointer" : "default",
-      }}
-      onClick={() => items.length > 0 && setExpanded((e) => !e)}
+      className={`${styles.bucketCard} ${clickable ? styles.bucketCardClickable : ""}`}
+      onClick={() => clickable && setExpanded((e) => !e)}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: "50%",
-            background: "#1A1A1A",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 22,
-            flexShrink: 0,
-          }}
-        >
-          {cat.icon}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 15, color: "#fff", fontWeight: 600 }}>
-            {cat.name}
-          </p>
+      <div className={styles.bucketCardTop}>
+        <div className={styles.bucketCardIcon}>{cat.icon}</div>
+        <div className={styles.bucketCardMain}>
+          <p className={styles.bucketCardName}>{cat.name}</p>
           {hasBudget && (
-            <p style={{ fontSize: 12, marginTop: 2 }}>
-              {over ? (
-                <span style={{ color: "#EF444488" }}>
-                  {fmt(Math.abs(remaining))} over
-                </span>
-              ) : (
-                <span style={{ color: "#34D39988" }}>
-                  {fmt(remaining)} left
-                </span>
-              )}
+            <p
+              className={`${styles.bucketCardStatus} ${over ? styles.bucketCardStatusOver : styles.bucketCardStatusOk}`}
+            >
+              {over
+                ? `${fmt(Math.abs(remaining))} over`
+                : `${fmt(remaining)} left`}
             </p>
           )}
         </div>
-        <div style={{ textAlign: "right", flexShrink: 0 }}>
+        <div className={styles.bucketCardAmounts}>
           <p
-            style={{
-              fontSize: 16,
-              fontWeight: 700,
-              color: over ? "#EF4444" : "#fff",
-            }}
+            className={`${styles.bucketCardSpent} ${over ? styles.bucketCardSpentOver : ""}`}
           >
             {fmt(spent)}
           </p>
           {hasBudget && (
-            <p style={{ fontSize: 11, color: "#333", marginTop: 2 }}>
-              / {fmt(budget)}
-            </p>
+            <p className={styles.bucketCardBudgetTotal}>/ {fmt(budget)}</p>
           )}
         </div>
-        {items.length > 0 && (
+        {clickable && (
           <span
-            style={{
-              color: "#333",
-              fontSize: 12,
-              flexShrink: 0,
-              padding: "0 4px",
-              transform: expanded ? "rotate(180deg)" : "none",
-              transition: "transform 0.2s ease",
-            }}
+            className={`${styles.bucketCardChevron} ${expanded ? styles.bucketCardChevronOpen : ""}`}
           >
             ▾
           </span>
@@ -378,91 +210,33 @@ function BucketCard({ cat, spent, items = [], onDelete }) {
             e.stopPropagation();
             onDelete(cat.id);
           }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#333",
-            cursor: "pointer",
-            fontSize: 20,
-            padding: "0 0 0 8px",
-            flexShrink: 0,
-          }}
+          className={styles.bucketCardDeleteBtn}
         >
           ×
         </button>
       </div>
       {hasBudget && (
-        <div
-          style={{
-            marginTop: 12,
-            height: 4,
-            background: "#1A1A1A",
-            borderRadius: 2,
-            overflow: "hidden",
-          }}
-        >
+        <div className={styles.progressTrack}>
           <div
-            style={{
-              height: "100%",
-              borderRadius: 2,
-              width: `${budgetPct}%`,
-              background: over
-                ? "#EF4444"
-                : budgetPct > 80
-                  ? "#FBBF24"
-                  : "#F97316",
-              transition: "width 0.6s ease",
-            }}
+            className={`${styles.progressFill} ${progressFillClass}`}
+            style={{ width: `${budgetPct}%` }}
           />
         </div>
       )}
       {expanded && items.length > 0 && (
-        <div
-          style={{
-            marginTop: 14,
-            paddingTop: 14,
-            borderTop: "1px solid #1A1A1A",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
+        <div className={styles.bucketItems}>
           {sortedItems.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: "#ccc",
-                    fontWeight: 500,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
+            <div key={item.id} className={styles.bucketItemRow}>
+              <div className={styles.bucketItemInfo}>
+                <p className={styles.bucketItemStore}>
                   {item.store_name || "Expense"}
                 </p>
-                <p style={{ fontSize: 11, color: "#444", marginTop: 1 }}>
+                <p className={styles.bucketItemMeta}>
                   {fmtDate(item.date)}
                   {item.note ? ` · ${item.note}` : ""}
                 </p>
               </div>
-              <p
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "#fff",
-                  flexShrink: 0,
-                }}
-              >
+              <p className={styles.bucketItemAmount}>
                 {fmt(parseFloat(item.amount))}
               </p>
             </div>
@@ -537,79 +311,25 @@ export default function OverviewPage({
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        background: "rgba(0,0,0,0.3)",
-        display: "flex",
-        justifyContent: "center",
-        fontFamily: "Inter, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 480,
-          background: "#000",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-        }}
-      >
+    <div className={styles.overlay}>
+      <div className={styles.panel}>
         {/* Header */}
-        <div
-          style={{
-            padding: "52px 20px 14px",
-            flexShrink: 0,
-            borderBottom: "1px solid #111",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff" }}>
-              Overview
-            </h2>
-            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <div className={styles.header}>
+          <div className={styles.headerRow}>
+            <h2 className={styles.title}>Overview</h2>
+            <div className={styles.monthNav}>
               <button
                 onClick={() => onMonthChange(-1)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#444",
-                  fontSize: 22,
-                  cursor: "pointer",
-                  padding: "0 8px",
-                }}
+                className={styles.monthNavBtn}
               >
                 ‹
               </button>
-              <span
-                style={{
-                  fontSize: 13,
-                  color: "#666",
-                  minWidth: 90,
-                  textAlign: "center",
-                }}
-              >
+              <span className={styles.monthNavLabel}>
                 {MONTHS[month]} {year}
               </span>
               <button
                 onClick={() => onMonthChange(1)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#444",
-                  fontSize: 22,
-                  cursor: "pointer",
-                  padding: "0 8px",
-                }}
+                className={styles.monthNavBtn}
               >
                 ›
               </button>
@@ -617,27 +337,17 @@ export default function OverviewPage({
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 100px" }}>
+        <div className={styles.body}>
           {/* Gauge */}
-          <div
-            style={{
-              background: "#0A0A0A",
-              borderRadius: 20,
-              margin: "16px 0 8px",
-              border: "1px solid #1A1A1A",
-              overflow: "hidden",
-            }}
-          >
+          <div className={styles.gaugeCard}>
             <GaugeChart
               pct={budgetPct}
               over={over}
               spent={total}
               budget={budget}
             />
-            <div
-              style={{ padding: "8px 20px 14px", borderTop: "1px solid #111" }}
-            >
-              <p style={{ fontSize: 12, color: "#333" }}>
+            <div className={styles.gaugeFooter}>
+              <p className={styles.gaugeFooterText}>
                 {expenses.length} expense{expenses.length !== 1 ? "s" : ""} this
                 month
               </p>
@@ -645,87 +355,32 @@ export default function OverviewPage({
           </div>
 
           {/* Buckets header */}
-          <div
-            style={{
-              marginTop: 20,
-              marginBottom: 12,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <p
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "#444",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-              }}
-            >
-              Buckets
-            </p>
+          <div className={styles.bucketsHeader}>
+            <p className={styles.bucketsLabel}>Buckets</p>
             <button
               onClick={() => setShowNewBucket(true)}
-              style={{
-                background: "linear-gradient(135deg,#F97316,#EC4899)",
-                border: "none",
-                borderRadius: 20,
-                padding: "5px 14px",
-                color: "#fff",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: "Inter, sans-serif",
-              }}
+              className={styles.addBucketBtn}
             >
               + Add
             </button>
           </div>
 
           {categories.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px 20px",
-                background: "#0A0A0A",
-                borderRadius: 16,
-                border: "1px solid #1A1A1A",
-              }}
-            >
-              <p style={{ fontSize: 32, marginBottom: 12 }}>🪣</p>
-              <p
-                style={{
-                  fontSize: 15,
-                  color: "#fff",
-                  fontWeight: 600,
-                  marginBottom: 6,
-                }}
-              >
-                No buckets yet
-              </p>
-              <p style={{ fontSize: 13, color: "#333", marginBottom: 20 }}>
+            <div className={styles.emptyBuckets}>
+              <p className={styles.emptyBucketsIcon}>🪣</p>
+              <p className={styles.emptyBucketsTitle}>No buckets yet</p>
+              <p className={styles.emptyBucketsHint}>
                 Create buckets to organize your spending
               </p>
               <button
                 onClick={() => setShowNewBucket(true)}
-                style={{
-                  background: "linear-gradient(135deg,#F97316,#EC4899)",
-                  border: "none",
-                  borderRadius: 12,
-                  padding: "12px 24px",
-                  color: "#fff",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "Inter, sans-serif",
-                }}
+                className={styles.emptyBucketsCta}
               >
                 + Add your first bucket
               </button>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className={styles.bucketList}>
               {categories.map((cat) => (
                 <BucketCard
                   key={cat.id}

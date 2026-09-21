@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { API_BASE_URL } from "../api";
 import { fmt, fmtDate, getCat, parseLocalDate } from "../utils";
+import styles from "./SearchModal.module.css";
 
 export default function SearchModal({ expenses, onClose, onSelectDay }) {
   const [query, setQuery] = useState("");
@@ -30,42 +31,10 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
           .slice(0, 30);
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 600,
-        background: "#000",
-        display: "flex",
-        flexDirection: "column",
-        animation: "fadeIn 0.2s ease",
-      }}
-    >
-      <style>{`@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }`}</style>
-
+    <div className={styles.screen}>
       {/* Search bar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          padding: "52px 16px 16px",
-          borderBottom: "1px solid #111",
-          flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            background: "#111",
-            borderRadius: 12,
-            padding: "10px 14px",
-            border: "1px solid #1A1A1A",
-          }}
-        >
+      <div className={styles.searchBar}>
+        <div className={styles.searchInputWrap}>
           <svg
             width="16"
             height="16"
@@ -85,64 +54,33 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
             placeholder="Search store, note, category..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            style={{
-              flex: 1,
-              background: "none",
-              border: "none",
-              outline: "none",
-              color: "#fff",
-              fontSize: 15,
-              fontFamily: "Inter, sans-serif",
-            }}
+            className={styles.searchInput}
           />
           {query && (
-            <button
-              onClick={() => setQuery("")}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#444",
-                cursor: "pointer",
-                fontSize: 16,
-              }}
-            >
+            <button onClick={() => setQuery("")} className={styles.clearBtn}>
               ✕
             </button>
           )}
         </div>
-        <button
-          onClick={onClose}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#F97316",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-            fontFamily: "Inter, sans-serif",
-            whiteSpace: "nowrap",
-          }}
-        >
+        <button onClick={onClose} className={styles.cancelBtn}>
           Cancel
         </button>
       </div>
 
       {/* Results */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "8px 16px 40px" }}>
+      <div className={styles.results}>
         {query.trim().length === 0 && (
-          <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
-            <p style={{ fontSize: 14, color: "#444" }}>
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🔍</div>
+            <p className={styles.emptyText}>
               Search your expenses by store, note or category
             </p>
           </div>
         )}
 
         {query.trim().length > 0 && results.length === 0 && (
-          <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <p style={{ fontSize: 14, color: "#444" }}>
-              No results for "{query}"
-            </p>
+          <div className={styles.emptyState}>
+            <p className={styles.emptyText}>No results for "{query}"</p>
           </div>
         )}
 
@@ -161,83 +99,34 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
                 );
                 onClose();
               }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "12px 0",
-                borderBottom: "1px solid #0A0A0A",
-                cursor: "pointer",
-              }}
+              className={styles.resultRow}
             >
-              {/* Photo or icon */}
               {e.photo_url ? (
                 <img
                   src={`${API_BASE_URL}${e.photo_url}`}
                   alt=""
-                  style={{
-                    width: 48,
-                    height: 48,
-                    objectFit: "cover",
-                    borderRadius: 10,
-                    flexShrink: 0,
-                  }}
+                  className={styles.resultPhoto}
                 />
               ) : (
                 <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 10,
-                    flexShrink: 0,
-                    background: cat.color + "22",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 22,
-                  }}
+                  className={styles.resultPhotoFallback}
+                  style={{ background: cat.color + "22" }}
                 >
                   {cat.icon}
                 </div>
               )}
 
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#fff",
-                    marginBottom: 2,
-                  }}
-                >
-                  {e.store_name}
-                </div>
-                {e.note && (
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: "#555",
-                      marginBottom: 3,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    {e.note}
-                  </div>
-                )}
-                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <div className={styles.resultInfo}>
+                <div className={styles.resultStore}>{e.store_name}</div>
+                {e.note && <div className={styles.resultNote}>{e.note}</div>}
+                <div className={styles.resultMeta}>
                   <span
-                    style={{
-                      fontSize: 11,
-                      color: cat.color,
-                      background: cat.color + "18",
-                      padding: "2px 7px",
-                      borderRadius: 5,
-                      fontWeight: 500,
-                    }}
+                    className={styles.resultCategory}
+                    style={{ color: cat.color, background: cat.color + "18" }}
                   >
                     {cat.icon} {e.category}
                   </span>
-                  <span style={{ fontSize: 11, color: "#444" }}>
+                  <span className={styles.resultDate}>
                     {fmtDate(e.date, {
                       month: "short",
                       day: "numeric",
@@ -247,16 +136,7 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
                 </div>
               </div>
 
-              <div
-                style={{
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: "#fff",
-                  flexShrink: 0,
-                }}
-              >
-                {fmt(e.amount)}
-              </div>
+              <div className={styles.resultAmount}>{fmt(e.amount)}</div>
             </div>
           );
         })}

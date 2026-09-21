@@ -1,20 +1,10 @@
+import styles from "./Field.module.css";
+
 // Shared labeled form-field wrapper used by AddModal and EditModal.
 export default function Field({ label, children }) {
   return (
-    <div style={{ marginBottom: 12 }}>
-      <label
-        style={{
-          display: "block",
-          fontSize: 11,
-          fontWeight: 600,
-          color: "#444",
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          marginBottom: 5,
-        }}
-      >
-        {label}
-      </label>
+    <div className={styles.field}>
+      <label className={styles.label}>{label}</label>
       {children}
     </div>
   );
