@@ -1,5 +1,5 @@
 import { calendarStyles as cal } from "../styles/calendar";
-import { getCat, fmt } from "../utils";
+import { fmt, getCat } from "../utils";
 
 const getRingGradient = (count) => {
   if (count >= 3) return "linear-gradient(135deg,#F97316,#EC4899,#8B5CF6)";
@@ -13,7 +13,6 @@ export default function DayCell({ day, expenses, onClick, isToday }) {
   const hasExpenses = expenses.length > 0;
   const total = expenses.reduce((s, e) => s + parseFloat(e.amount), 0);
   const count = expenses.length;
-  const hasDebt = expenses.some((e) => e.paid_by && !e.is_settled);
   const stackCount = Math.min(count, 3);
 
   const stackOffsets = [
@@ -222,22 +221,6 @@ export default function DayCell({ day, expenses, onClick, isToday }) {
         >
           {fmt(total)}
         </div>
-
-        {/* Debt dot */}
-        {hasDebt && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: 3,
-              right: 4,
-              zIndex: 10,
-              width: 5,
-              height: 5,
-              borderRadius: "50%",
-              background: "#FBBF24",
-            }}
-          />
-        )}
       </div>
     </div>
   );

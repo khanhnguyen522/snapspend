@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
+
+import api from "../api";
 import { CATEGORIES } from "../constants";
 import { getCat } from "../utils";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export default function BudgetModal({ current, onClose, onSaved, setToast }) {
   const [overall, setOverall] = useState(String(current));
@@ -15,8 +14,8 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
     document.documentElement.style.overflow = "hidden";
     document.body.style.position = "fixed";
     document.body.style.width = "100%";
-    axios
-      .get(`${API}/category-budgets`)
+    api
+      .get("/category-budgets")
       .then((res) => setCatBudgets(res.data.budgets || {}))
       .catch(() => {});
     return () => {
@@ -32,8 +31,8 @@ export default function BudgetModal({ current, onClose, onSaved, setToast }) {
     if (isNaN(n) || n <= 0) return;
     setSaving(true);
     try {
-      await axios.put(`${API}/budget`, { budget: n });
-      await axios.put(`${API}/category-budgets`, { budgets: catBudgets });
+      await api.put("/budget", { budget: n });
+      await api.put("/category-budgets", { budgets: catBudgets });
       setToast("Budget updated");
       onSaved();
       onClose();

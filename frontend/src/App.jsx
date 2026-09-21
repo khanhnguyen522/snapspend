@@ -1,23 +1,23 @@
-import { useState, useEffect, useRef } from "react";
-import axios from "axios";
-import { MONTHS, DAYS } from "./constants";
-import { appStyles as s } from "./styles/app";
-import { calendarStyles as cal } from "./styles/calendar";
+import { useEffect, useRef, useState } from "react";
+
+import api, { setAuthToken } from "./api";
 import AddModal from "./components/AddModal";
+import AuthScreen from "./components/AuthScreen";
 import DayCell from "./components/DayCell";
 import DaySheet from "./components/DaySheet";
+import HelpModal from "./components/HelpModal";
 import OverviewPage from "./components/OverviewPage";
 import SearchModal from "./components/SearchModal";
-import AuthScreen from "./components/AuthScreen";
 import Toast from "./components/Toast";
-import HelpModal from "./components/HelpModal";
+import { DAYS, MONTHS } from "./constants";
+import { appStyles as s } from "./styles/app";
+import { calendarStyles as cal } from "./styles/calendar";
+import { parseLocalDate } from "./utils";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const NOW_MONTH = new Date().getMonth();
 const NOW_YEAR = new Date().getFullYear();
 
-const token = localStorage.getItem("token");
-if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+setAuthToken(localStorage.getItem("token"));
 
 export default function App() {
   const [user, setUser] = useState(() => {
@@ -73,9 +73,13 @@ export default function App() {
   useEffect(() => {
     if (!daySheet) return;
     const stillHasExpenses = expenses.some((e) => {
-      if (!e.date) return false;
-      const [y, m, d] = e.date.split("T")[0].split("-").map(Number);
-      return d === daySheet.day && m - 1 === month && y === year;
+      const d = parseLocalDate(e.date);
+      return (
+        d &&
+        d.getDate() === daySheet.day &&
+        d.getMonth() === month &&
+        d.getFullYear() === year
+      );
     });
     if (!stillHasExpenses) setDaySheet(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,8 +88,8 @@ export default function App() {
   const fetchAll = async () => {
     try {
       const [expRes, catRes] = await Promise.all([
-        axios.get(`${API}/expenses`),
-        axios.get(`${API}/categories`),
+        api.get("/expenses"),
+        api.get("/categories"),
       ]);
       setExpenses(expRes.data);
       setCategories(catRes.data.categories || []);
@@ -94,14 +98,14 @@ export default function App() {
 
   const addCategory = async (cat) => {
     try {
-      const res = await axios.post(`${API}/categories`, cat);
+      const res = await api.post("/categories", cat);
       setCategories((prev) => [...prev, res.data.category]);
     } catch {}
   };
 
   const deleteCategory = async (id) => {
     try {
-      await axios.delete(`${API}/categories/${id}`);
+      await api.delete(`/categories/${id}`);
       setCategories((prev) => prev.filter((c) => c.id !== id));
     } catch (err) {
       if (err.response?.status === 409) {
@@ -115,9 +119,7 @@ export default function App() {
 
   const reassignAndDeleteCategory = async (id, targetId) => {
     try {
-      await axios.post(`${API}/categories/${id}/reassign-and-delete`, {
-        targetId,
-      });
+      await api.post(`/categories/${id}/reassign-and-delete`, { targetId });
       setCategories((prev) => prev.filter((c) => c.id !== id));
       fetchAll(); // refresh expenses since their category changed
     } catch (err) {
@@ -128,8 +130,7 @@ export default function App() {
   };
 
   const handleLogin = (u) => {
-    const t = localStorage.getItem("token");
-    if (t) axios.defaults.headers.common["Authorization"] = `Bearer ${t}`;
+    setAuthToken(localStorage.getItem("token"));
     setUser(u);
     fetchAll();
   };
@@ -137,14 +138,14 @@ export default function App() {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    delete axios.defaults.headers.common["Authorization"];
+    setAuthToken(null);
     setUser(null);
     setExpenses([]);
     setCategories([]);
   };
 
   const deleteExp = async (id) => {
-    await axios.delete(`${API}/expenses/${id}`);
+    await api.delete(`/expenses/${id}`);
     fetchAll();
   };
 
@@ -178,15 +179,14 @@ export default function App() {
   ];
 
   const monthExpenses = expenses.filter((e) => {
-    if (!e.date) return false;
-    const [y, m] = e.date.split("T")[0].split("-").map(Number);
-    return m - 1 === month && y === year;
+    const d = parseLocalDate(e.date);
+    return d && d.getMonth() === month && d.getFullYear() === year;
   });
 
   const byDay = monthExpenses.reduce((acc, e) => {
-    const d = parseInt(e.date.split("T")[0].split("-")[2]);
-    if (!acc[d]) acc[d] = [];
-    acc[d].push(e);
+    const day = parseLocalDate(e.date).getDate();
+    if (!acc[day]) acc[day] = [];
+    acc[day].push(e);
     return acc;
   }, {});
 
@@ -201,16 +201,15 @@ export default function App() {
 
   const daySheetExpenses = daySheet
     ? monthExpenses.filter(
-        (e) => parseInt(e.date.split("T")[0].split("-")[2]) === daySheet.day,
+        (e) => parseLocalDate(e.date).getDate() === daySheet.day,
       )
     : [];
 
   const getMonthRingStyle = (i) => {
     const isActive = i === month;
     const hasExp = expenses.some((e) => {
-      if (!e.date) return false;
-      const [y, m] = e.date.split("T")[0].split("-").map(Number);
-      return m - 1 === i && y === year;
+      const d = parseLocalDate(e.date);
+      return d && d.getMonth() === i && d.getFullYear() === year;
     });
     if (isActive) return s.monthRingActive;
     if (hasExp) return s.monthRingHasExp;
@@ -592,7 +591,6 @@ export default function App() {
           month={month}
           year={year}
           onClose={() => setDaySheet(null)}
-          onSettle={() => {}}
           onDelete={deleteExp}
           onSaved={fetchAll}
           setToast={setToast}

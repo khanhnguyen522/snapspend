@@ -1,7 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import api from "../api";
 
 export default function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("login");
@@ -22,7 +21,7 @@ export default function AuthScreen({ onLogin }) {
       const endpoint = mode === "login" ? "/auth/login" : "/auth/register";
       const payload =
         mode === "login" ? { email, password } : { email, password, name };
-      const res = await axios.post(`${API}${endpoint}`, payload);
+      const res = await api.post(endpoint, payload);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       onLogin(res.data.user);

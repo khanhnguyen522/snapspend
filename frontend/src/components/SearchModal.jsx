@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { getCat, fmt } from "../utils";
+import { useEffect, useRef, useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API_BASE_URL } from "../api";
+import { fmt, fmtDate, getCat, parseLocalDate } from "../utils";
 
 export default function SearchModal({ expenses, onClose, onSelectDay }) {
   const [query, setQuery] = useState("");
@@ -28,16 +28,6 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
             );
           })
           .slice(0, 30);
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "";
-    const [y, m, d] = dateStr.split("T")[0].split("-").map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
 
   return (
     <div
@@ -162,8 +152,13 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
             <div
               key={e.id}
               onClick={() => {
-                const [y, m, d] = e.date.split("T")[0].split("-").map(Number);
-                onSelectDay(d, m - 1, y, e);
+                const parsed = parseLocalDate(e.date);
+                onSelectDay(
+                  parsed.getDate(),
+                  parsed.getMonth(),
+                  parsed.getFullYear(),
+                  e,
+                );
                 onClose();
               }}
               style={{
@@ -178,7 +173,7 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
               {/* Photo or icon */}
               {e.photo_url ? (
                 <img
-                  src={`${API}${e.photo_url}`}
+                  src={`${API_BASE_URL}${e.photo_url}`}
                   alt=""
                   style={{
                     width: 48,
@@ -243,7 +238,11 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
                     {cat.icon} {e.category}
                   </span>
                   <span style={{ fontSize: 11, color: "#444" }}>
-                    {formatDate(e.date)}
+                    {fmtDate(e.date, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </span>
                 </div>
               </div>

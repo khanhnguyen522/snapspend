@@ -1,4 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import { API_BASE_URL } from "../api";
+import { fmtDate } from "../utils";
 import EditModal from "./EditModal";
 
 export default function DaySheet({
@@ -84,21 +87,16 @@ export default function DaySheet({
     touchStartY.current = null;
   };
 
-  const dateStr = e?.date
-    ? (() => {
-        const [y, m, d] = e.date.split("T")[0].split("-").map(Number);
-        return new Date(y, m - 1, d).toLocaleDateString("en-US", {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        });
-      })()
-    : "";
+  const dateStr = fmtDate(e?.date, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
   const photoUrl = e?.photo_url
     ? e.photo_url.startsWith("http")
       ? e.photo_url
-      : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${e.photo_url}`
+      : `${API_BASE_URL}${e.photo_url}`
     : null;
 
   return (

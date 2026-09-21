@@ -1,29 +1,9 @@
 import { useState } from "react";
-import axios from "axios";
+
+import api from "../api";
+import { toDateInputValue } from "../utils";
 import { modalStyles as m } from "../styles/modal";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
-
-function Field({ label, children }) {
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <label
-        style={{
-          display: "block",
-          fontSize: 11,
-          fontWeight: 600,
-          color: "#444",
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          marginBottom: 5,
-        }}
-      >
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
+import Field from "./Field";
 
 export default function EditModal({
   expense,
@@ -39,7 +19,7 @@ export default function EditModal({
     store_name: expense.store_name || "",
     category: expense.category || "",
     note: expense.note || "",
-    date: expense.date ? expense.date.split("T")[0] : "",
+    date: toDateInputValue(expense.date),
   });
 
   const save = async () => {
@@ -56,7 +36,7 @@ export default function EditModal({
       fd.append("category", form.category);
       fd.append("note", form.note);
       fd.append("date", form.date);
-      await axios.patch(`${API}/expenses/${expense.id}`, fd);
+      await api.patch(`/expenses/${expense.id}`, fd);
       setToast("Expense updated");
       onSaved();
       onClose();

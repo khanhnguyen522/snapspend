@@ -105,32 +105,6 @@ export const appStyles = {
     fontWeight: 500,
     color: "#444",
   },
-  statsRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "14px 0",
-    borderTop: "0.5px solid #111",
-  },
-  stat: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 2,
-  },
-  statVal: { fontSize: 20, fontWeight: 700, color: "#fff" },
-  statLbl: {
-    fontSize: 9,
-    color: "#444",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-  },
-  insightsCard: {
-    background: "#0A0A0A",
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 12,
-    border: "1px solid #1A1A1A",
-  },
   bottomBar: {
     position: "fixed",
     bottom: 0,
@@ -167,15 +141,5 @@ export const appStyles = {
     alignItems: "center",
     justifyContent: "center",
     boxShadow: "0 0 20px rgba(249,115,22,0.4)",
-  },
-  debtBanner: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    background: "#78350F22",
-    border: "1px solid #92400E",
-    borderRadius: 10,
-    padding: "10px 14px",
-    marginBottom: 14,
   },
 };
