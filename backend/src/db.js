@@ -1,17 +1,16 @@
 const { Pool, types } = require("pg");
-types.setTypeParser(1082, (val) => val);
-require("dotenv").config();
 
-const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "password",
-  database: process.env.DB_NAME || "snapspend",
-});
+const config = require("./config");
+
+// Postgres returns DATE columns as JS Date objects by default, which get
+// shifted by local timezone when serialized. Keep them as plain strings
+// ("YYYY-MM-DD") instead.
+types.setTypeParser(1082, (val) => val);
+
+const pool = new Pool(config.db);
 
 const createTables = async () => {
-  // Users table
+  // Users first — buckets and expenses both reference it.
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -22,23 +21,8 @@ const createTables = async () => {
     )
   `);
 
-  // Expenses table
-  await pool.query(`
-  CREATE TABLE IF NOT EXISTS expenses (
-    id SERIAL PRIMARY KEY,
-    store_name VARCHAR(255),
-    amount DECIMAL(10,2) NOT NULL,
-    category VARCHAR(50) REFERENCES buckets(id) ON DELETE RESTRICT,
-    date DATE NOT NULL,
-    photo_url TEXT,
-    note TEXT,
-    entry_type VARCHAR(20) DEFAULT 'manual',
-    created_at TIMESTAMP DEFAULT NOW(),
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
-  )
-`);
-
-  // Buckets table
+  // Buckets before expenses: expenses.category references buckets(id),
+  // so buckets must exist first on a fresh database.
   await pool.query(`
     CREATE TABLE IF NOT EXISTS buckets (
       id VARCHAR(50) PRIMARY KEY,
@@ -50,8 +34,27 @@ const createTables = async () => {
     )
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS expenses (
+      id SERIAL PRIMARY KEY,
+      store_name VARCHAR(255),
+      amount DECIMAL(10,2) NOT NULL,
+      category VARCHAR(50) REFERENCES buckets(id) ON DELETE RESTRICT,
+      date DATE NOT NULL,
+      photo_url TEXT,
+      note TEXT,
+      entry_type VARCHAR(20) DEFAULT 'manual',
+      created_at TIMESTAMP DEFAULT NOW(),
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
   console.log("Snapspend tables ready");
 };
 
-createTables();
+createTables().catch((err) => {
+  console.error("Failed to initialize database tables:", err);
+  process.exit(1);
+});
+
 module.exports = pool;

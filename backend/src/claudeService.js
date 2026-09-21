@@ -1,8 +1,20 @@
 const Anthropic = require("@anthropic-ai/sdk");
 require("dotenv").config();
+
 const { normalizeImage } = require("./imageUtils");
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+const MODEL = "claude-sonnet-4-6";
+
+const RECEIPT_PROMPT = `Analyze this receipt image and respond ONLY with JSON, no markdown:
+{
+  "store_name": "store name",
+  "amount": 0.00,
+  "category": "one of: groceries, food, dining, shopping, transport, entertainment, health, other",
+  "date": "YYYY-MM-DD"
+}
+If you cannot read the receipt clearly, make your best guess. For date, use today if not visible.`;
 
 const readReceipt = async (imageBuffer, mimeType = "image/jpeg") => {
   const { buffer: imageData, mimeType: finalMimeType } = await normalizeImage(
@@ -10,10 +22,8 @@ const readReceipt = async (imageBuffer, mimeType = "image/jpeg") => {
     mimeType,
   );
 
-  const base64Image = imageData.toString("base64");
-
   const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
+    model: MODEL,
     max_tokens: 1024,
     messages: [
       {
@@ -24,20 +34,10 @@ const readReceipt = async (imageBuffer, mimeType = "image/jpeg") => {
             source: {
               type: "base64",
               media_type: finalMimeType,
-              data: base64Image,
+              data: imageData.toString("base64"),
             },
           },
-          {
-            type: "text",
-            text: `Analyze this receipt image and respond ONLY with JSON, no markdown:
-{
-  "store_name": "store name",
-  "amount": 0.00,
-  "category": "one of: groceries, food, dining, shopping, transport, entertainment, health, other",
-  "date": "YYYY-MM-DD"
-}
-If you cannot read the receipt clearly, make your best guess. For date, use today if not visible.`,
-          },
+          { type: "text", text: RECEIPT_PROMPT },
         ],
       },
     ],
