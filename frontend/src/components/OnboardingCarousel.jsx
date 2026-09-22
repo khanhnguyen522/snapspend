@@ -27,33 +27,35 @@ export default function OnboardingCarousel({ onDone }) {
 
   return (
     <div className={styles.screen}>
-      <div className={styles.skipRow}>
-        <button onClick={onDone} className={styles.skipBtn}>
-          Skip
-        </button>
-      </div>
-
-      <div className={styles.body}>
-        <div className={styles.icon}>{slide.icon}</div>
-        <p className={styles.title}>{slide.title}</p>
-        <p className={styles.text}>{slide.text}</p>
-      </div>
-
-      <div className={styles.footer}>
-        <div className={styles.dots}>
-          {SLIDES.map((_, i) => (
-            <div
-              key={i}
-              className={`${styles.dot} ${i === step ? styles.dotActive : ""}`}
-            />
-          ))}
+      <div className={styles.panel}>
+        <div className={styles.skipRow}>
+          <button onClick={onDone} className={styles.skipBtn}>
+            Skip
+          </button>
         </div>
-        <button
-          onClick={() => (isLast ? onDone() : setStep((s) => s + 1))}
-          className={styles.nextBtn}
-        >
-          {isLast ? "Get started" : "Next"}
-        </button>
+
+        <div className={styles.body}>
+          <div className={styles.icon}>{slide.icon}</div>
+          <p className={styles.title}>{slide.title}</p>
+          <p className={styles.text}>{slide.text}</p>
+        </div>
+
+        <div className={styles.footer}>
+          <div className={styles.dots}>
+            {SLIDES.map((_, i) => (
+              <div
+                key={i}
+                className={`${styles.dot} ${i === step ? styles.dotActive : ""}`}
+              />
+            ))}
+          </div>
+          <button
+            onClick={() => (isLast ? onDone() : setStep((s) => s + 1))}
+            className={styles.nextBtn}
+          >
+            {isLast ? "Get started" : "Next"}
+          </button>
+        </div>
       </div>
     </div>
   );

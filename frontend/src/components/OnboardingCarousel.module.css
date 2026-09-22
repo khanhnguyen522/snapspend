@@ -4,8 +4,15 @@
   z-index: 4000;
   background: #000;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   font-family: Inter, sans-serif;
+}
+
+.panel {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
 }
 
 .skipRow {
