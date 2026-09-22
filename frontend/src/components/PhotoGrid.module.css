@@ -1,6 +1,5 @@
 .scroller {
-  height: calc(100vh - 400px);
-  min-height: 320px;
+  max-height: calc(100vh - 400px);
   overflow-y: auto;
 }
 
