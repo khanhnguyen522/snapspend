@@ -32,19 +32,22 @@ export default function PhotoFeed({
             className={styles.slide}
             onClick={() => onSelectExpense(exp)}
           >
-            {exp.photo_url ? (
-              <img src={exp.photo_url} alt="" className={styles.photo} />
-            ) : (
-              <div
-                className={styles.fallback}
-                style={{ background: cat.color + "22" }}
-              >
-                {cat.icon}
-              </div>
-            )}
+            <div className={styles.photoArea}>
+              {exp.photo_url ? (
+                <img src={exp.photo_url} alt="" className={styles.photo} />
+              ) : (
+                <div
+                  className={styles.fallback}
+                  style={{ background: cat.color + "22" }}
+                >
+                  {cat.icon}
+                </div>
+              )}
+            </div>
             <div className={styles.info}>
               <p className={styles.amount}>{fmt(exp.amount)}</p>
               <p className={styles.store}>{exp.store_name || "Expense"}</p>
+              {exp.note && <p className={styles.note}>{exp.note}</p>}
               <div className={styles.tagRow}>
                 {bucket && (
                   <span className={styles.bucketTag}>
