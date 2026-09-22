@@ -77,7 +77,6 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
         <div className={styles.results}>
           {query.trim().length === 0 && (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>🔍</div>
               <p className={styles.emptyText}>
                 Search your expenses by store, note or category
               </p>
@@ -109,7 +108,11 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
               >
                 {e.photo_url ? (
                   <img
-                    src={`${API_BASE_URL}${e.photo_url}`}
+                    src={
+                      e.photo_url.startsWith("http")
+                        ? e.photo_url
+                        : `${API_BASE_URL}${e.photo_url}`
+                    }
                     alt=""
                     className={styles.resultPhoto}
                   />
