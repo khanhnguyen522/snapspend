@@ -18,29 +18,31 @@ export default function PhotoGrid({ expenses, onSelectExpense }) {
   }
 
   return (
-    <div className={styles.grid}>
-      {sorted.map((exp) => {
-        const cat = getCat(exp.category);
-        return (
-          <div
-            key={exp.id}
-            className={styles.cell}
-            onClick={() => onSelectExpense(exp)}
-          >
-            {exp.photo_url ? (
-              <img src={exp.photo_url} alt="" className={styles.photo} />
-            ) : (
-              <div
-                className={styles.fallback}
-                style={{ background: cat.color + "22" }}
-              >
-                {cat.icon}
-              </div>
-            )}
-            <span className={styles.amount}>{fmt(exp.amount)}</span>
-          </div>
-        );
-      })}
+    <div className={styles.scroller}>
+      <div className={styles.grid}>
+        {sorted.map((exp) => {
+          const cat = getCat(exp.category);
+          return (
+            <div
+              key={exp.id}
+              className={styles.cell}
+              onClick={() => onSelectExpense(exp)}
+            >
+              {exp.photo_url ? (
+                <img src={exp.photo_url} alt="" className={styles.photo} />
+              ) : (
+                <div
+                  className={styles.fallback}
+                  style={{ background: cat.color + "22" }}
+                >
+                  {cat.icon}
+                </div>
+              )}
+              <span className={styles.amount}>{fmt(exp.amount)}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

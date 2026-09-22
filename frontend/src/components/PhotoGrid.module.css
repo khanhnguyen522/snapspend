@@ -1,3 +1,9 @@
+.scroller {
+  height: calc(100vh - 400px);
+  min-height: 320px;
+  overflow-y: auto;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

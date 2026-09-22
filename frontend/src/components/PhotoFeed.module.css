@@ -1,6 +1,6 @@
 .scroller {
-  height: calc(100vh - 320px);
-  min-height: 460px;
+  height: calc(100vh - 400px);
+  min-height: 320px;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
   border-radius: 16px;
