@@ -22,7 +22,7 @@ export default function PhotoFeed({
   }
 
   return (
-    <div className={styles.scroller}>
+    <div className={styles.list}>
       {sorted.map((exp) => {
         const cat = getCat(exp.category);
         const bucket = categories.find((b) => b.id === exp.category);
@@ -53,13 +53,11 @@ export default function PhotoFeed({
               </div>
               <p className={styles.store}>{exp.store_name || "Expense"}</p>
               {exp.note && <p className={styles.note}>{exp.note}</p>}
-              {bucket && (
-                <div className={styles.tagRow}>
-                  <span className={styles.bucketTag}>
-                    {bucket.icon} {bucket.name}
-                  </span>
-                </div>
-              )}
+              <div className={styles.tagRow}>
+                <span className={styles.bucketTag}>
+                  {bucket ? `${bucket.icon} ${bucket.name}` : "Uncategorized"}
+                </span>
+              </div>
             </div>
           </div>
         );

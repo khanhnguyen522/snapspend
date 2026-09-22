@@ -237,185 +237,197 @@ export default function App() {
   return (
     <div className={styles.root}>
       {activeTab === "calendar" && (
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <div>
-              <h1 className={styles.logo}>snapspend</h1>
-              <p className={styles.greeting}>Hi, {user?.name}</p>
-            </div>
-            <div className={styles.headerActions}>
-              <button
-                onClick={() => setShowHelp(true)}
-                className={styles.helpBtn}
-              >
-                ?
-              </button>
-              <button
-                onClick={() => setShowSearch(true)}
-                className={styles.iconBtn}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#444"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </button>
-              <div className={styles.yearNav}>
-                <button
-                  onClick={() => setYear((y) => y - 1)}
-                  className={styles.yearBtn}
-                >
-                  ‹
-                </button>
-                <span className={styles.yearLabel}>{year}</span>
-                <button
-                  onClick={() => setYear((y) => y + 1)}
-                  className={styles.yearBtn}
-                >
-                  ›
-                </button>
-              </div>
-              <div className={styles.avatarWrap}>
-                <button
-                  onClick={() => setShowProfileMenu(!showProfileMenu)}
-                  className={styles.avatarBtn}
-                >
-                  <div className={styles.avatar}>
-                    <div className={styles.avatarInner}>
-                      {user?.name?.[0]?.toUpperCase() || "S"}
-                    </div>
-                  </div>
-                </button>
-                {showProfileMenu && (
-                  <>
-                    <div
-                      className={styles.menuBackdrop}
-                      onClick={() => setShowProfileMenu(false)}
-                    />
-                    <div className={styles.profileMenu}>
-                      <div className={styles.profileMenuHeader}>
-                        <div className={styles.profileName}>{user.name}</div>
-                        <div className={styles.profileEmail}>{user.email}</div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setShowProfileMenu(false);
-                          logout();
-                        }}
-                        className={styles.signOutBtn}
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div ref={monthStripRef} className={styles.monthStrip}>
-            {MONTHS.map((m, i) => {
-              const isActive = i === month;
-              const isToday = i === NOW_MONTH && year === NOW_YEAR;
-              const ringClass = getMonthRingClass(i);
-              return (
-                <div
-                  key={m}
-                  data-active={isActive}
-                  className={styles.monthItem}
-                  onClick={() => setMonth(i)}
-                >
-                  <div className={ringClass}>
-                    <div
-                      className={
-                        isActive || ringClass === styles.monthRingHasExp
-                          ? styles.monthInnerActive
-                          : styles.monthInnerInactive
-                      }
+        <div className={styles.calendarScreen}>
+          <div className={styles.calendarPanel}>
+            <div className={styles.calendarHeaderArea}>
+              <div className={styles.header}>
+                <div>
+                  <h1 className={styles.logo}>snapspend</h1>
+                  <p className={styles.greeting}>Hi, {user?.name}</p>
+                </div>
+                <div className={styles.headerActions}>
+                  <button
+                    onClick={() => setShowHelp(true)}
+                    className={styles.helpBtn}
+                  >
+                    ?
+                  </button>
+                  <button
+                    onClick={() => setShowSearch(true)}
+                    className={styles.iconBtn}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#444"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      {m.slice(0, 3)}
-                    </div>
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                  </button>
+                  <div className={styles.yearNav}>
+                    <button
+                      onClick={() => setYear((y) => y - 1)}
+                      className={styles.yearBtn}
+                    >
+                      ‹
+                    </button>
+                    <span className={styles.yearLabel}>{year}</span>
+                    <button
+                      onClick={() => setYear((y) => y + 1)}
+                      className={styles.yearBtn}
+                    >
+                      ›
+                    </button>
                   </div>
-                  {isToday && (
+                  <div className={styles.avatarWrap}>
+                    <button
+                      onClick={() => setShowProfileMenu(!showProfileMenu)}
+                      className={styles.avatarBtn}
+                    >
+                      <div className={styles.avatar}>
+                        <div className={styles.avatarInner}>
+                          {user?.name?.[0]?.toUpperCase() || "S"}
+                        </div>
+                      </div>
+                    </button>
+                    {showProfileMenu && (
+                      <>
+                        <div
+                          className={styles.menuBackdrop}
+                          onClick={() => setShowProfileMenu(false)}
+                        />
+                        <div className={styles.profileMenu}>
+                          <div className={styles.profileMenuHeader}>
+                            <div className={styles.profileName}>
+                              {user.name}
+                            </div>
+                            <div className={styles.profileEmail}>
+                              {user.email}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setShowProfileMenu(false);
+                              logout();
+                            }}
+                            className={styles.signOutBtn}
+                          >
+                            Sign out
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div ref={monthStripRef} className={styles.monthStrip}>
+                {MONTHS.map((m, i) => {
+                  const isActive = i === month;
+                  const isToday = i === NOW_MONTH && year === NOW_YEAR;
+                  const ringClass = getMonthRingClass(i);
+                  return (
                     <div
-                      className={`${styles.todayDot} ${
-                        isActive
-                          ? styles.todayDotActive
-                          : styles.todayDotInactive
-                      }`}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                      key={m}
+                      data-active={isActive}
+                      className={styles.monthItem}
+                      onClick={() => setMonth(i)}
+                    >
+                      <div className={ringClass}>
+                        <div
+                          className={
+                            isActive || ringClass === styles.monthRingHasExp
+                              ? styles.monthInnerActive
+                              : styles.monthInnerInactive
+                          }
+                        >
+                          {m.slice(0, 3)}
+                        </div>
+                      </div>
+                      {isToday && (
+                        <div
+                          className={`${styles.todayDot} ${
+                            isActive
+                              ? styles.todayDotActive
+                              : styles.todayDotInactive
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
 
-          <div className={styles.viewSwitcher}>
-            <button
-              onClick={() => setViewMode("calendar")}
-              className={`${styles.viewSwitchBtn} ${viewMode === "calendar" ? styles.viewSwitchBtnActive : ""}`}
-            >
-              Calendar
-            </button>
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`${styles.viewSwitchBtn} ${viewMode === "grid" ? styles.viewSwitchBtnActive : ""}`}
-            >
-              Grid
-            </button>
-            <button
-              onClick={() => setViewMode("feed")}
-              className={`${styles.viewSwitchBtn} ${viewMode === "feed" ? styles.viewSwitchBtnActive : ""}`}
-            >
-              Feed
-            </button>
-          </div>
-
-          {viewMode === "calendar" && (
-            <div className={calendarStyles.grid}>
-              {DAYS.map((d) => (
-                <div key={d} className={calendarStyles.dayLabel}>
-                  {d}
-                </div>
-              ))}
-              {cells.map((day, i) => (
-                <DayCell
-                  key={i}
-                  day={day}
-                  expenses={day ? byDay[day] || [] : []}
-                  onClick={(d, exps) => setDaySheet({ day: d, expenses: exps })}
-                  isToday={
-                    day === new Date().getDate() &&
-                    month === NOW_MONTH &&
-                    year === NOW_YEAR
-                  }
-                />
-              ))}
+              <div className={styles.viewSwitcher}>
+                <button
+                  onClick={() => setViewMode("calendar")}
+                  className={`${styles.viewSwitchBtn} ${viewMode === "calendar" ? styles.viewSwitchBtnActive : ""}`}
+                >
+                  Calendar
+                </button>
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`${styles.viewSwitchBtn} ${viewMode === "grid" ? styles.viewSwitchBtnActive : ""}`}
+                >
+                  Grid
+                </button>
+                <button
+                  onClick={() => setViewMode("feed")}
+                  className={`${styles.viewSwitchBtn} ${viewMode === "feed" ? styles.viewSwitchBtnActive : ""}`}
+                >
+                  Feed
+                </button>
+              </div>
             </div>
-          )}
 
-          {viewMode === "grid" && (
-            <PhotoGrid
-              expenses={monthExpenses}
-              onSelectExpense={handleSelectExpense}
-            />
-          )}
+            <div className={styles.calendarBody}>
+              {viewMode === "calendar" && (
+                <div className={calendarStyles.grid}>
+                  {DAYS.map((d) => (
+                    <div key={d} className={calendarStyles.dayLabel}>
+                      {d}
+                    </div>
+                  ))}
+                  {cells.map((day, i) => (
+                    <DayCell
+                      key={i}
+                      day={day}
+                      expenses={day ? byDay[day] || [] : []}
+                      onClick={(d, exps) =>
+                        setDaySheet({ day: d, expenses: exps })
+                      }
+                      isToday={
+                        day === new Date().getDate() &&
+                        month === NOW_MONTH &&
+                        year === NOW_YEAR
+                      }
+                    />
+                  ))}
+                </div>
+              )}
 
-          {viewMode === "feed" && (
-            <PhotoFeed
-              expenses={monthExpenses}
-              categories={categories}
-              onSelectExpense={handleSelectExpense}
-            />
-          )}
+              {viewMode === "grid" && (
+                <PhotoGrid
+                  expenses={monthExpenses}
+                  onSelectExpense={handleSelectExpense}
+                />
+              )}
+
+              {viewMode === "feed" && (
+                <PhotoFeed
+                  expenses={monthExpenses}
+                  categories={categories}
+                  onSelectExpense={handleSelectExpense}
+                />
+              )}
+            </div>
+          </div>
         </div>
       )}
 

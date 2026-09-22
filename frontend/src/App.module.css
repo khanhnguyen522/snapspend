@@ -10,6 +10,33 @@
   padding: 44px 16px 0;
 }
 
+.calendarScreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.calendarPanel {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendarHeaderArea {
+  flex-shrink: 0;
+  padding: 44px 16px 0;
+}
+
+.calendarBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 100px;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
