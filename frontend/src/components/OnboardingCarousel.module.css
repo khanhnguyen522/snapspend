@@ -1,0 +1,92 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  font-family: Inter, sans-serif;
+}
+
+.skipRow {
+  display: flex;
+  justify-content: flex-end;
+  padding: 52px 20px 0;
+}
+
+.skipBtn {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+  text-align: center;
+}
+
+.icon {
+  font-size: 56px;
+  margin-bottom: 28px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+  letter-spacing: -0.3px;
+}
+
+.text {
+  font-size: 15px;
+  color: #888;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+.footer {
+  padding: 0 24px 48px;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #222;
+  transition:
+    width 0.2s,
+    background 0.2s;
+}
+
+.dotActive {
+  width: 20px;
+  border-radius: 3px;
+  background: #f97316;
+}
+
+.nextBtn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}

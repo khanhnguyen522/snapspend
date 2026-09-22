@@ -6,6 +6,7 @@ import AuthScreen from "./components/AuthScreen";
 import DayCell from "./components/DayCell";
 import DaySheet from "./components/DaySheet";
 import HelpModal from "./components/HelpModal";
+import OnboardingCarousel from "./components/OnboardingCarousel";
 import OverviewPage from "./components/OverviewPage";
 import SearchModal from "./components/SearchModal";
 import Toast from "./components/Toast";
@@ -32,6 +33,9 @@ export default function App() {
   const [showAdd, setShowAdd] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem("snapspend_onboarded"),
+  );
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [daySheet, setDaySheet] = useState(null);
   const [toast, setToast] = useState(null);
@@ -496,6 +500,14 @@ export default function App() {
         />
       )}
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      {showOnboarding && (
+        <OnboardingCarousel
+          onDone={() => {
+            localStorage.setItem("snapspend_onboarded", "1");
+            setShowOnboarding(false);
+          }}
+        />
+      )}
       {toast && <Toast msg={toast} onDone={() => setToast(null)} />}
     </div>
   );

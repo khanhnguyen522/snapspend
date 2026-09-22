@@ -36,7 +36,7 @@ export default function HelpModal({ onClose }) {
     >
       <div className={styles.sheet}>
         <div className={styles.header}>
-          <span className={styles.title}>How Snapspend works</span>
+          <span className={styles.title}>Help &amp; tips</span>
           <button onClick={onClose} className={styles.doneBtn}>
             Done
           </button>
