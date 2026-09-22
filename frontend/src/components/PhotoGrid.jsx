@@ -11,7 +11,6 @@ export default function PhotoGrid({ expenses, onSelectExpense }) {
   if (sorted.length === 0) {
     return (
       <div className={styles.empty}>
-        <p className={styles.emptyIcon}>🖼️</p>
         <p className={styles.emptyText}>No expenses this month yet</p>
       </div>
     );
