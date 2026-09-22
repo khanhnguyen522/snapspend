@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const pool = require("../db");
 const auth = require("../middleware/auth");
+const { loginLimiter } = require("../middleware/rateLimiter");
 const asyncHandler = require("../utils/asyncHandler");
 const { jwtSecret, jwtExpiresIn } = require("../config");
 
@@ -39,6 +40,7 @@ router.post(
 
 router.post(
   "/login",
+  loginLimiter,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password)
