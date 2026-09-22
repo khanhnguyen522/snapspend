@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 
 import { API_BASE_URL } from "../api";
-import { fmt, fmtDate, getCat, parseLocalDate } from "../utils";
+import { fmt, fmtDate, parseLocalDate } from "../utils";
 import sheet from "../styles/sheet.module.css";
 import styles from "./SearchModal.module.css";
 
-export default function SearchModal({ expenses, onClose, onSelectDay }) {
+export default function SearchModal({
+  expenses,
+  categories = [],
+  onClose,
+  onSelectDay,
+}) {
   const [query, setQuery] = useState("");
   const inputRef = useRef();
 
@@ -23,10 +28,12 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
       : expenses
           .filter((e) => {
             const q = query.toLowerCase();
+            const bucketName =
+              categories.find((b) => b.id === e.category)?.name || "";
             return (
               e.store_name?.toLowerCase().includes(q) ||
               e.note?.toLowerCase().includes(q) ||
-              e.category?.toLowerCase().includes(q)
+              bucketName.toLowerCase().includes(q)
             );
           })
           .slice(0, 30);
@@ -90,7 +97,7 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
           )}
 
           {results.map((e) => {
-            const cat = getCat(e.category);
+            const bucket = categories.find((b) => b.id === e.category);
             return (
               <div
                 key={e.id}
@@ -117,11 +124,8 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
                     className={styles.resultPhoto}
                   />
                 ) : (
-                  <div
-                    className={styles.resultPhotoFallback}
-                    style={{ background: cat.color + "22" }}
-                  >
-                    {cat.icon}
+                  <div className={styles.resultPhotoFallback}>
+                    {bucket?.icon || "📄"}
                   </div>
                 )}
 
@@ -129,11 +133,10 @@ export default function SearchModal({ expenses, onClose, onSelectDay }) {
                   <div className={styles.resultStore}>{e.store_name}</div>
                   {e.note && <div className={styles.resultNote}>{e.note}</div>}
                   <div className={styles.resultMeta}>
-                    <span
-                      className={styles.resultCategory}
-                      style={{ color: cat.color, background: cat.color + "18" }}
-                    >
-                      {cat.icon} {e.category}
+                    <span className={styles.resultCategory}>
+                      {bucket
+                        ? `${bucket.icon} ${bucket.name}`
+                        : "Uncategorized"}
                     </span>
                     <span className={styles.resultDate}>
                       {fmtDate(e.date, {
