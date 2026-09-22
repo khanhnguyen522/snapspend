@@ -45,19 +45,21 @@ export default function PhotoFeed({
               )}
             </div>
             <div className={styles.info}>
-              <p className={styles.amount}>{fmt(exp.amount)}</p>
-              <p className={styles.store}>{exp.store_name || "Expense"}</p>
-              {exp.note && <p className={styles.note}>{exp.note}</p>}
-              <div className={styles.tagRow}>
-                {bucket && (
-                  <span className={styles.bucketTag}>
-                    {bucket.icon} {bucket.name}
-                  </span>
-                )}
+              <div className={styles.headerRow}>
+                <p className={styles.amount}>{fmt(exp.amount)}</p>
                 <span className={styles.dateTag}>
                   {fmtDate(exp.date, { month: "short", day: "numeric" })}
                 </span>
               </div>
+              <p className={styles.store}>{exp.store_name || "Expense"}</p>
+              {exp.note && <p className={styles.note}>{exp.note}</p>}
+              {bucket && (
+                <div className={styles.tagRow}>
+                  <span className={styles.bucketTag}>
+                    {bucket.icon} {bucket.name}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         );
