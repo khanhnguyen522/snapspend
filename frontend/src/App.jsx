@@ -8,6 +8,8 @@ import DaySheet from "./components/DaySheet";
 import HelpModal from "./components/HelpModal";
 import OnboardingCarousel from "./components/OnboardingCarousel";
 import OverviewPage from "./components/OverviewPage";
+import PhotoFeed from "./components/PhotoFeed";
+import PhotoGrid from "./components/PhotoGrid";
 import SearchModal from "./components/SearchModal";
 import Toast from "./components/Toast";
 import { DAYS, MONTHS } from "./constants";
@@ -35,6 +37,9 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("snapspend_onboarded"),
+  );
+  const [viewMode, setViewMode] = useState(
+    () => localStorage.getItem("snapspend_view_mode") || "calendar",
   );
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [daySheet, setDaySheet] = useState(null);
@@ -88,6 +93,10 @@ export default function App() {
     if (!stillHasExpenses) setDaySheet(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expenses]);
+
+  useEffect(() => {
+    localStorage.setItem("snapspend_view_mode", viewMode);
+  }, [viewMode]);
 
   const fetchAll = async () => {
     try {
@@ -157,6 +166,11 @@ export default function App() {
     setMonth(month);
     setYear(year);
     setDaySheet({ day });
+  };
+
+  const handleSelectExpense = (exp) => {
+    const d = parseLocalDate(exp.date);
+    setDaySheet({ day: d.getDate() });
   };
 
   const handleOverviewMonthChange = (dir) => {
@@ -344,26 +358,64 @@ export default function App() {
             })}
           </div>
 
-          <div className={calendarStyles.grid}>
-            {DAYS.map((d) => (
-              <div key={d} className={calendarStyles.dayLabel}>
-                {d}
-              </div>
-            ))}
-            {cells.map((day, i) => (
-              <DayCell
-                key={i}
-                day={day}
-                expenses={day ? byDay[day] || [] : []}
-                onClick={(d, exps) => setDaySheet({ day: d, expenses: exps })}
-                isToday={
-                  day === new Date().getDate() &&
-                  month === NOW_MONTH &&
-                  year === NOW_YEAR
-                }
-              />
-            ))}
+          <div className={styles.viewSwitcher}>
+            <button
+              onClick={() => setViewMode("calendar")}
+              className={`${styles.viewSwitchBtn} ${viewMode === "calendar" ? styles.viewSwitchBtnActive : ""}`}
+            >
+              Calendar
+            </button>
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`${styles.viewSwitchBtn} ${viewMode === "grid" ? styles.viewSwitchBtnActive : ""}`}
+            >
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode("feed")}
+              className={`${styles.viewSwitchBtn} ${viewMode === "feed" ? styles.viewSwitchBtnActive : ""}`}
+            >
+              Feed
+            </button>
           </div>
+
+          {viewMode === "calendar" && (
+            <div className={calendarStyles.grid}>
+              {DAYS.map((d) => (
+                <div key={d} className={calendarStyles.dayLabel}>
+                  {d}
+                </div>
+              ))}
+              {cells.map((day, i) => (
+                <DayCell
+                  key={i}
+                  day={day}
+                  expenses={day ? byDay[day] || [] : []}
+                  onClick={(d, exps) => setDaySheet({ day: d, expenses: exps })}
+                  isToday={
+                    day === new Date().getDate() &&
+                    month === NOW_MONTH &&
+                    year === NOW_YEAR
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {viewMode === "grid" && (
+            <PhotoGrid
+              expenses={monthExpenses}
+              onSelectExpense={handleSelectExpense}
+            />
+          )}
+
+          {viewMode === "feed" && (
+            <PhotoFeed
+              expenses={monthExpenses}
+              categories={categories}
+              onSelectExpense={handleSelectExpense}
+            />
+          )}
         </div>
       )}
 

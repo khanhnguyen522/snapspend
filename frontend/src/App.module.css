@@ -178,6 +178,37 @@
   display: none;
 }
 
+.viewSwitcher {
+  display: flex;
+  gap: 4px;
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 16px;
+}
+
+.viewSwitchBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  padding: 8px 0;
+  color: #555;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.viewSwitchBtnActive {
+  background: #1a1a1a;
+  color: #fff;
+}
+
 .monthItem {
   display: flex;
   flex-direction: column;
