@@ -1,13 +1,13 @@
 # Snapspend
 
-**Live:** [snapspend-tau.vercel.app](https://snapspend-tau.vercel.app)
+Live: [snapspend-tau.vercel.app](https://snapspend-tau.vercel.app)
 
 I got tired of typing every expense into an app by hand, so I built this. Take a photo of a receipt, Claude reads the amount and store for you, done. If there's no receipt (or Claude reads it wrong), you can just type it in manually too.
 
 ## What it does
 
-- **Snap a receipt** and Claude Vision pulls out the amount, store, and date automatically
-- **Buckets** you make yourself, not some fixed dropdown list. Rent, Coffee, whatever you actually spend money on. Each one can have its own monthly budget
+- Snap a receipt and Claude Vision pulls out the amount, store, and date automatically
+- Buckets you make yourself, not some fixed dropdown list. Rent, Coffee, whatever you actually spend money on. Each one can have its own monthly budget
 - Three ways to look at your spending: a calendar grid, a photo grid, and a scrollable feed
 - An overview tab with a gauge showing how much of your budget you've burned through
 - Search by store, note, or bucket name
@@ -16,6 +16,14 @@ I got tired of typing every expense into an app by hand, so I built this. Take a
 ## Stack
 
 React + Vite on the frontend (CSS Modules, no component library), Express + Postgres on the backend. Photos go to S3, receipt reading goes through the Claude API. Frontend lives on Vercel, backend runs on an EC2 box with PM2 keeping it alive.
+
+## How receipt scanning actually works
+
+1. You snap a photo, it hits `/expenses/scan` — Claude Vision reads it and hands back amount, store, and date, nothing gets saved yet
+2. You get a screen to check what Claude read and fix anything it got wrong
+3. Hit confirm, and `/expenses/confirm-scan` is what actually writes it to the database
+
+Splitting it into scan-then-confirm instead of one endpoint was on purpose — receipts are messy and Claude misreads amounts sometimes, so a bad photo shouldn't be able to silently create a wrong expense.
 
 ## Folder layout
 
@@ -28,11 +36,11 @@ frontend/src/
 └── utils.js       date/currency formatting
 
 backend/src/
-├── routes/           auth.js, expenses.js, categories.js
-├── middleware/       auth.js, rateLimiter.js, errorHandler.js
+├── routes/            auth.js, expenses.js, categories.js
+├── middleware/        auth.js, rateLimiter.js, errorHandler.js
 ├── db.js              Postgres pool + table setup
-├── s3.js               upload/delete/sign receipt photos
-└── claudeService.js    sends the receipt photo to Claude Vision
+├── s3.js              upload/delete/sign receipt photos
+└── claudeService.js   sends the receipt photo to Claude Vision
 ```
 
 ## Running it locally
@@ -107,8 +115,8 @@ Everything except register/login needs an `Authorization: Bearer <token>` header
 
 ## Deploying
 
-Push to `main` and Vercel picks up the frontend automatically. The backend doesn't auto-deploy though, you have to SSH into EC2, `git pull`, reinstall if package.json changed, and restart with PM2. Annoying but that's how it is for now.
+Push to `main` and Vercel picks up the frontend automatically. The backend doesn't auto-deploy though, you have to SSH into EC2, `git pull`, reinstall if `package.json` changed, and restart with PM2. Annoying but that's how it is for now.
 
-## The data model, roughly
+## Why it's built this way
 
-`users` have `buckets`, `buckets` have `expenses`. An expense's `category` field is a foreign key pointing at a bucket's id, so you can't delete a bucket that still has expenses in it without moving them somewhere first.
+A bucket's `id` is a foreign key on every expense that belongs to it, so deleting a bucket that's still in use fails with a 409 instead of quietly orphaning expenses. `reassign-and-delete` exists because "I want to rename Coffee into Food" is a real thing that happens, and losing expense history over a rename would suck. Login is rate limited because auth here is just JWT plus a password — nothing else is stopping someone from hammering the login endpoint otherwise.
